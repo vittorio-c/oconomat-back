@@ -1,0 +1,25 @@
+RECIPE: title
+has ingredient, 1N RECIPE, 11 INGREDIENT
+INGREDIENT: quantity
+related to, 11 INGREDIENT, 0N FOOD
+FOOD: name, price, unit, type
+
+has recipe_steps, 1N RECIPE, 11 RECIPE_STEP
+:
+has recipes, 11 MENU, 1N RECIPE
+:
+has label, 0N FOOD, 0N LABEL 
+
+RECIPE_STEP: step_number, content
+:
+MENU: number
+:
+:
+LABEL: name
+
+
+has user, 1N USER, 11 MENU
+
+OBJECTIF: budget
+has objectives, 11 OBJECTIF, 1N USER
+USER: firstname, lastname, email, password
