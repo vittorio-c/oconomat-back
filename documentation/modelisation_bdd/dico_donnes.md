@@ -31,6 +31,7 @@
 | id | INT | PRIMARY KEY, NOT NULL, UNSIGNED, AUTO_INCREMENT | id recette |
 | title | TINYTEXT | NOT NULL | titre de la recette (pour affichage) |
 | slug | TINYTEXT | NOT NULL | titre de la recette (pour bdd/url) |
+| type | TINYTEXT | NOT NULL | Type de la recette selon le moment de la journée |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | date de création |
 | updated_at | TIMESTAMMP | NULL, on update CURRENT_TIMESTAMP | date de modification |
 
@@ -59,11 +60,19 @@
 | Champ  | Type  | Spécificités   | Description   |
 | - | -   | -   | -   |
 | id | int | NOT NULL PRIMARY KEY UNSIGNED AUTO_INCREMENT | id d'un menu |
-| number | int | NOT NULL | numéro de menu pour l'utilisateur |
-| recette_id | entity | NOT NULL, FOREIGN KEY | id de la recette |
 | user_id | entity | NOT NULL, FOREIGN KEY | id de l'user |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | date de création |
 | updated_at | TIMESTAMMP | NULL, on update CURRENT_TIMESTAMP | date de modification |
+
+
+# menu_recipe
+
+| Champ  | Type  | Spécificités   | Description   |
+| - | -   | -   | -   |
+| recipe_id | entity | PRIMARY KEY FOREIGN KEY | lien vers la recette |
+| menu_id | entity | PRIMARY KEY FOREIGN KEY | lien vers le menu |
+
+
 
 # objectives
 
