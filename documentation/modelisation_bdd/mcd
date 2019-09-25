@@ -6,13 +6,13 @@ FOOD: name, price, unit, type
 
 has recipe_steps, 1N RECIPE, 11 RECIPE_STEP
 :
-has recipes, 11 MENU, 1N RECIPE
+has recipes, 1N MENU, 0N RECIPE
 :
 has label, 0N FOOD, 0N LABEL 
 
 RECIPE_STEP: step_number, content
 :
-MENU: number
+MENU:
 :
 :
 LABEL: name
