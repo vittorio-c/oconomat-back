@@ -1,4 +1,4 @@
-RECIPE: title
+RECIPE: title, type
 has ingredient, 1N RECIPE, 11 INGREDIENT
 INGREDIENT: quantity
 related to, 11 INGREDIENT, 0N FOOD
