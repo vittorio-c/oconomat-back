@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -52,6 +54,22 @@ class User implements UserInterface
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $updatedAt;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Objectif", mappedBy="user")
+     */
+    private $objectifs;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Menu", mappedBy="user")
+     */
+    private $menus;
+
+    public function __construct()
+    {
+        $this->objectifs = new ArrayCollection();
+        $this->menus = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -175,6 +193,68 @@ class User implements UserInterface
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Objectif[]
+     */
+    public function getObjectifs(): Collection
+    {
+        return $this->objectifs;
+    }
+
+    public function addObjectif(Objectif $objectif): self
+    {
+        if (!$this->objectifs->contains($objectif)) {
+            $this->objectifs[] = $objectif;
+            $objectif->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeObjectif(Objectif $objectif): self
+    {
+        if ($this->objectifs->contains($objectif)) {
+            $this->objectifs->removeElement($objectif);
+            // set the owning side to null (unless already changed)
+            if ($objectif->getUser() === $this) {
+                $objectif->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Menu[]
+     */
+    public function getMenus(): Collection
+    {
+        return $this->menus;
+    }
+
+    public function addMenu(Menu $menu): self
+    {
+        if (!$this->menus->contains($menu)) {
+            $this->menus[] = $menu;
+            $menu->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMenu(Menu $menu): self
+    {
+        if ($this->menus->contains($menu)) {
+            $this->menus->removeElement($menu);
+            // set the owning side to null (unless already changed)
+            if ($menu->getUser() === $this) {
+                $menu->setUser(null);
+            }
+        }
 
         return $this;
     }
