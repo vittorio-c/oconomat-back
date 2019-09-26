@@ -32,9 +32,11 @@
 | Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
 | --        | --           | --                   | --    |
 | /api/menu/{id} | GET | MenuController->find() | récupération d'un menu (=de la liste des recettes associées) |
-| /api/menu/create | POST | MenuController->create() | soumission du formulaire avec mes objectifs |
+| /api/menu/create | POST | MenuController->create() | création d'un menu (=soumission du formulaire avec objectifs) |
+| /api/menu/{id} | UPDATE | MenuController->update() | modification d'un menu existant |
+| /api/menu/{id} | DELETE | MenuController->delete() | suppression d'un menu existant |
 
-## Autres ? a valider
+## Autres routes
 
 | Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
 | --        | --           | --                   | --    |
@@ -46,12 +48,6 @@
 | /api/user/logout | GET | UserController->logout() | logout |
 
 
-todo : 
-- ajouter une rubrique type dans la table recette
-- ajouter une rubrique type done pour recette
-
-
-
-## de côté
+## mises de côté
 
 | /api/user/check-password | POST | UserController->checkPassword() | soumission & traitement formulaire de récupération mot de passe |
