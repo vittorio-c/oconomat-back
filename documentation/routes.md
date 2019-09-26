@@ -15,11 +15,17 @@
 
 ### Recipe
 
+> NB : le create/delete/update d'une recette sera utile uniquement pour la partie admin
+> et, éventuellement, si on laisse la possibilité à l'user d'ajouter ses propres recettes dans une V2/V3
+
 | Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
 | --        | --           | --                   | --    |
-| /api/recipe/{$id}/ingredient | GET | recipeController->find($id) | liste des ingrédients d'une recette |
+| /api/recipe/{id} | GET | récupération d'une recette d'un menu |
+| /api/recipe/{id}/ingredient | GET | recipeController->find($id) | liste des ingrédients d'une recette |
 | /api/recipe/{id}/steps | GET |  recipeController->find($id) | liste des étapes d'une recette  |
-| /api/recipe/{$id} | GET | récupération d'une recette d'un menu |
+| /api/recipe/create | POST | création d'une recette |
+| /api/recipe/{id} | DELETE | suppression d'une recette |
+| /api/recipe/{id} | UPDATE | modification d'une recette |
 
 ### Menu
 
