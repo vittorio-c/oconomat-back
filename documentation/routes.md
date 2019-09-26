@@ -1,14 +1,30 @@
- # V1
+# V1
 
 ## CRUD 
 
+### User
+
+> NB : la création d'un utilisateur sera gérée par le SecurityController au moment du signup
+> Donc pas de Create pour user ici
+
 | Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
 | --        | --           | --                   | --    |
-| /api/user/create | POST | UserController->create() | Création d'un utilisateur |
 | /api/user/{id}| GET | UserController->find($id) | récupération d'un utilisateur |
+| /api/user/{id}| PUT | UserController->update($id) | modification d'un utilisateur |
+| /api/user/{id}| DELETE | UserController->delete($id) | suppression d'un utilisateur |
+
+### Recipe
+
+| Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
+| --        | --           | --                   | --    |
 | /api/recipe/{$id}/ingredient | GET | recipeController->find($id) | liste des ingrédients d'une recette |
 | /api/recipe/{id}/steps | GET |  recipeController->find($id) | liste des étapes d'une recette  |
 | /api/recipe/{$id} | GET | récupération d'une recette d'un menu |
+
+### Menu
+
+| Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
+| --        | --           | --                   | --    |
 | /api/menu/{id} | GET | MenuController->find() | récupération d'un menu (=de la liste des recettes associées) |
 | /api/menu/create | POST | MenuController->create() | soumission du formulaire avec mes objectifs |
 
