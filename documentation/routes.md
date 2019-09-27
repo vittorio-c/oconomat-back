@@ -5,13 +5,13 @@
 ### User
 
 > NB : la création d'un utilisateur sera gérée par le SecurityController au moment du signup
-> Donc pas de Create pour user ici
 
 | Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
 | --        | --           | --                   | --    |
 | /api/user/{id}| GET | UserController->find($id) | récupération d'un utilisateur |
 | /api/user/{id}| PUT | UserController->update($id) | modification d'un utilisateur |
 | /api/user/{id}| DELETE | UserController->delete($id) | suppression d'un utilisateur |
+| /signup | POST | SecurityController->signup() | création d'un utilisateur |
 
 ### Recipe
 
@@ -38,14 +38,20 @@
 
 ## Autres routes
 
+### User
+
 | Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
 | --        | --           | --                   | --    |
 | /api/contact | POST | UserController->contact() | soumission & traitement formulaire de contact |
-| /api/user/login | POST | UserController->login() | soumission & traitement formulaire de login |
-| /api/menu/{id}/recipies | GET | MenuController->getRecipies() | accès aux recettes d'un menu |
+| /login | POST | SecurityController->login() | soumission & traitement formulaire de login |
+| /logout | GET | SecurityController->logout() | logout |
+
+### Divers
+
+| Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
+| --        | --           | --                   | --    |
 | /api/menu/{id}/shopping-list | GET | MenuController->getShopiingList() | accès à la liste de course d'un menu |
-| /api/menu/renew | GET (POST?) | MenuController->renew() | renouvellement d'un menu avec critères non modifiés |
-| /api/user/logout | GET | UserController->logout() | logout |
+| /api/menu/renew | POST | MenuController->renew() | renouvellement d'un menu avec critères non modifiés |
 
 
 ## mises de côté
