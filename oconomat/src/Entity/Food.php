@@ -60,6 +60,7 @@ class Food
 
     public function __construct()
     {
+        $this->createdAt = new \DateTime();
         $this->ingredients = new ArrayCollection();
         $this->labels = new ArrayCollection();
     }
