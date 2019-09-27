@@ -1,0 +1,85 @@
+parameters:
+  encodedPassword: $argon2id$v=19$m=65536,t=4,p=1$wsupbX6adiipsQZqBhGVUw$+n6Jkpa/JBR22q+gw00Iv3O3MZ4w7TCNEEvivVU1gj8
+  roles: ["ROLE_USER"]
+
+App\Entity\User:
+    user_{1..23}:
+        email: '<email()>'
+        firstname: '<firstname()>'
+        lastname: '<lastname()>'
+        createdAt: '<date_create()>'
+        roles: '<{roles}>'
+        password: '<{encodedPassword}>'
+
+App\Entity\Objectif:
+    objectif_{1..23}:
+        budget: '<numberBetween(50, 100)>'
+        createdAt: '<date_create()>'
+        user: '@user_*'
+
+App\Entity\Label:
+    label_{1..10}:
+        name: '<word()>'
+        createdAt: '<date_create()>'             
+
+App\Entity\Food:
+    food_{1..250}:
+        name: '<word()>'
+        price: '<numberBetween(0,15)>'
+        unit: 'kg'
+        type: '<word()>'
+        labels: '2x @label_*'
+
+App\Entity\Recipe:
+    recipe_{1..80}:
+        title: '<word()>'
+        type: '<word()>'
+        createdAt: '<date_create()>'           
+             
+App\Entity\RecipeStep:
+    recipeStep_{1..250}:
+        stepNumber: '<numberBetween(1,8)>'
+        content: '<text()>'
+        createdAt: '<date_create()>' 
+        recipe: '@recipe_*'
+        
+App\Entity\Ingredient:
+    ingredient_{1..350}:
+        quantity: '<numberBetween(10,300)>'
+        createdAt: '<date_create()>' 
+        recipe: '@recipe_*'
+        aliment: '@food_*'
+
+App\Entity\Menu:
+    menu_{1..23}:
+        createdAt: '<date_create()>' 
+        recipes: '21x @recipe_*'
+        user: '@user_*'        
+
+ 
+
+
+# App\Entity\Person:
+#     person_{1..10}:
+#         name: '<name()>'
+#         createdAt: '<date_create()>' 
+
+# App\Entity\Casting:
+#     casting_{1..20}:
+#         role: '<firstname()>'
+#         creditOrder: '<numberBetween(1, 30)>'
+#         person: '@person_*'
+#         movie: '@movie_*' 
+
+# App\Entity\Department:
+#     department_{1..10}:
+#         name: '<word()>'
+#         createdAt: '<date_create()>' 
+
+# App\Entity\Job:
+#     job_{1..18}:
+#         name: '<word()>'
+#         createdAt: '<date_create()>' 
+#         department: '@department_*'
+# Quand on écrit '@departement_*' on fait référence au departements créé plus haut (ligne 31)
+# Le mot department derrière le @ est le même qu'a la ligne 31
