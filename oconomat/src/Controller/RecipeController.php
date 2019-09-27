@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Recipe;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -21,9 +22,12 @@ class RecipeController extends AbstractController
      *      requirements={"recipe": "\d"}
      * )
      */
-    public function find()
+    public function find(Recipe $recipe)
     {
-        return $this->json('hello RecipeController->find()');
+        return $this->json([
+            'message' => 'hello RecipeController->find()',
+            'recipe' => $recipe,
+        ]);
     }
 
     /**
@@ -36,9 +40,12 @@ class RecipeController extends AbstractController
      *      requirements={"recipe": "\d"}
      * )
      */
-    public function findIngredients()
+    public function findIngredients(Recipe $recipe)
     {
-        return $this->json('hello RecipeController->findIngredients()');
+        return $this->json([
+            'message' => 'hello RecipeController->findIngredients()',
+            'ingredients' => $recipe->getIngredients(),
+        ]);
     }
 
     /**
@@ -51,9 +58,12 @@ class RecipeController extends AbstractController
      *      requirements={"recipe": "\d"}
      * )
      */
-    public function findSteps()
+    public function findSteps(Recipe $recipe)
     {
-        return $this->json('hello RecipeController->findSteps()');
+        return $this->json([
+            'message' => 'hello RecipeController->findSteps()',
+            'steps' => $recipe->getRecipeSteps(),
+        ]);
     }
 
     /**
@@ -80,9 +90,12 @@ class RecipeController extends AbstractController
      *      requirements={"recipe": "\d"}
      * )
      */
-    public function update()
+    public function update(Recipe $recipe)
     {
-        return $this->json('hello RecipeController->update()');
+        return $this->json([
+            'message' => 'hello RecipeController->update()',
+            'recipe' => $recipe,
+        ]);
     }
 
     /**
@@ -95,8 +108,11 @@ class RecipeController extends AbstractController
      *      requirements={"recipe": "\d"}
      * )
      */
-    public function delete()
+    public function delete(Recipe $recipe)
     {
-        return $this->json('hello RecipeController->delete()');
+        return $this->json([
+            'message' => 'hello RecipeController->delete()',
+            'recipe' => $recipe,
+        ]);
     }
 }

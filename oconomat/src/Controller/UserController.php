@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -21,9 +22,12 @@ class UserController extends AbstractController
      *      requirements={"user": "\d"}
      * )
      */
-    public function find()
+    public function find(User $user)
     {
-        return $this->json('hello UserController->find()');
+        return $this->json([
+            'message' => 'hello UserController->find()',
+            'user' => $user,
+        ]);
     }
 
     /**
@@ -36,9 +40,12 @@ class UserController extends AbstractController
      *      requirements={"user": "\d"}
      * )
      */
-    public function update()
+    public function update(User $user)
     {
-        return $this->json('hello UserController->update()');
+        return $this->json([
+            'message' => 'hello UserController->update()',
+            'user' => $user,
+        ]);
     }
 
     /**
@@ -50,9 +57,12 @@ class UserController extends AbstractController
      *      methods={"DELETE"}
      * )
      */
-    public function delete()
+    public function delete(User $user)
     {
-        return $this->json('hello UserController->delete()');
+        return $this->json([
+            'message' => 'hello UserController->delete()',
+            'user' => $user,
+        ]);
     }
 
     /**

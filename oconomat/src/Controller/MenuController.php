@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Menu;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -21,9 +22,12 @@ class MenuController extends AbstractController
      *      requirements={"menu": "\d"}
      * )
      */
-    public function find()
+    public function find(Menu $menu)
     {
-        return $this->json('hello MenuController->find()');
+        return $this->json([
+            'message' => 'hello MenuController->find()',
+            'menu' => $menu,
+        ]);
     }
 
     /**
@@ -50,9 +54,12 @@ class MenuController extends AbstractController
      *      requirements={"menu": "\d"}
      * )
      */
-    public function update()
+    public function update(Menu $menu)
     {
-        return $this->json('hello MenuController->update()');
+        return $this->json([
+            'message' => 'hello MenuController->update()',
+            'menu' => $menu
+        ]);
     }
 
     /**
@@ -65,9 +72,12 @@ class MenuController extends AbstractController
      *      requirements={"menu": "\d"}
      * )
      */
-    public function delete()
+    public function delete(Menu $menu)
     {
-        return $this->json('hello MenuController->delete()');
+        return $this->json([
+            'message' => 'hello MenuController->delete()',
+            'menu' => $menu
+        ]);
     }
 
     /**
