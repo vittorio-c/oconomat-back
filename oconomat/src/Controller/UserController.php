@@ -54,4 +54,18 @@ class UserController extends AbstractController
     {
         return $this->json('hello UserController->delete()');
     }
+
+    /**
+     * Process contact form
+     *
+     * @Route(
+     *  "/contact",
+     *  name="contact",
+     *  methods={"POST"}
+     * )
+     */
+    public function contact()
+    {
+        return $this->json('hello UserController->contact()');
+    }
 }

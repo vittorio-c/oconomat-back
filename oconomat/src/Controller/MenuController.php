@@ -69,4 +69,33 @@ class MenuController extends AbstractController
     {
         return $this->json('hello MenuController->delete()');
     }
+
+    /**
+     * Get shopping-list from menu
+     *
+     * @Route(
+     *      "/{menu}/shopping-list",
+     *      name="shopping_list",
+     *      methods={"GET"},
+     *      requirements={"menu": "\d"}
+     * )
+     */
+    public function shoppingList()
+    {
+        return $this->json('hello MenuController->shoppingList()');
+    }
+
+    /**
+     * Renew a menu when there are no modifications in user's objectives
+     *
+     * @Route(
+     *  "/renew",
+     *  name="renew",
+     *  methods={"POST"}
+     * )
+     */
+    public function renew()
+    {
+        return $this->json('hello MenuController->renew()');
+    }
 }
