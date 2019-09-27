@@ -1,18 +1,42 @@
- # V1
+# V1
 
 ## CRUD 
 
+### User
+
+> NB : la création d'un utilisateur sera gérée par le SecurityController au moment du signup
+> Donc pas de Create pour user ici
+
 | Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
 | --        | --           | --                   | --    |
-| /api/user/create | POST | UserController->create() | Création d'un utilisateur |
 | /api/user/{id}| GET | UserController->find($id) | récupération d'un utilisateur |
-| /api/recipe/{$id}/ingredient | GET | recipeController->find($id) | liste des ingrédients d'une recette |
-| /api/recipe/{id}/steps | GET |  recipeController->find($id) | liste des étapes d'une recette  |
-| /api/recipe/{$id} | GET | récupération d'une recette d'un menu |
-| /api/menu/{id} | GET | MenuController->find() | récupération d'un menu (=de la liste des recettes associées) |
-| /api/menu/create | POST | MenuController->create() | soumission du formulaire avec mes objectifs |
+| /api/user/{id}| PUT | UserController->update($id) | modification d'un utilisateur |
+| /api/user/{id}| DELETE | UserController->delete($id) | suppression d'un utilisateur |
 
-## Autres ? a valider
+### Recipe
+
+> NB : le create/delete/update d'une recette sera utile uniquement pour la partie admin
+> et, éventuellement, si on laisse la possibilité à l'user d'ajouter ses propres recettes dans une V2/V3
+
+| Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
+| --        | --           | --                   | --    |
+| /api/recipe/{id} | GET | récupération d'une recette d'un menu |
+| /api/recipe/{id}/ingredient | GET | recipeController->find($id) | liste des ingrédients d'une recette |
+| /api/recipe/{id}/steps | GET |  recipeController->find($id) | liste des étapes d'une recette  |
+| /api/recipe/create | POST | création d'une recette |
+| /api/recipe/{id} | DELETE | suppression d'une recette |
+| /api/recipe/{id} | UPDATE | modification d'une recette |
+
+### Menu
+
+| Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
+| --        | --           | --                   | --    |
+| /api/menu/{id} | GET | MenuController->find() | récupération d'un menu (=de la liste des recettes associées) |
+| /api/menu/create | POST | MenuController->create() | création d'un menu (=soumission du formulaire avec objectifs) |
+| /api/menu/{id} | UPDATE | MenuController->update() | modification d'un menu existant |
+| /api/menu/{id} | DELETE | MenuController->delete() | suppression d'un menu existant |
+
+## Autres routes
 
 | Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
 | --        | --           | --                   | --    |
@@ -24,12 +48,6 @@
 | /api/user/logout | GET | UserController->logout() | logout |
 
 
-todo : 
-- ajouter une rubrique type dans la table recette
-- ajouter une rubrique type done pour recette
-
-
-
-## de côté
+## mises de côté
 
 | /api/user/check-password | POST | UserController->checkPassword() | soumission & traitement formulaire de récupération mot de passe |
