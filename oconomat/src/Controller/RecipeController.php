@@ -4,10 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Recipe;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
-
-// trying to handle circular references :
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
@@ -21,7 +19,7 @@ use Symfony\Component\Serializer\Serializer;
 class RecipeController extends AbstractController
 {
     /**
-     * Find a recipe (READ)
+     * Find a recipe (READ) with every piece of information
      *
      * @Route(
      *      "/{recipe}",
@@ -32,19 +30,20 @@ class RecipeController extends AbstractController
      */
     public function find(Recipe $recipe)
     {
-        // TODO : create a Serializer service to avoid those three lines
+        // set up the serializer
+        // TODO make it as a service
         $encoder = [new JsonEncoder()];
         $normalizers = array(new DateTimeNormalizer(), new ObjectNormalizer());
         $serializer = new Serializer($normalizers, $encoder);
 
         // a callable is passed as third argument to handle circular references
-        $recipeJson = $serializer->serialize($recipe, 'json', [
-            'circular_reference_handler' => function ($object) {
+        $data = $serializer->serialize($recipe, 'json', [
+            'circular_reference_handler' => function ($object, $format, $context) {
                 return $object->getId();
             }
         ]);
 
-        return new Response($recipeJson, 200, ['Content-Type' => 'application/json']);
+        return new Response($data, 200, ['Content-Type' => 'application/json']);
     }
 
     /**
@@ -59,10 +58,25 @@ class RecipeController extends AbstractController
      */
     public function findIngredients(Recipe $recipe)
     {
-        return $this->json([
-            'message' => 'hello RecipeController->findIngredients()',
-            'ingredients' => $recipe->getIngredients(),
+        // set up the serializer
+        // TODO make it as a service
+        $encoder = [new JsonEncoder()];
+        $normalizers = [new DateTimeNormalizer(), new ObjectNormalizer()];
+        $serializer = new Serializer($normalizers, $encoder);
+
+        // first normalize only, in order to select specific attributes
+        // https://symfony.com/doc/current/components/serializer.html#selecting-specific-attributes 
+        $data = $serializer->normalize($recipe->getIngredients(), null, [
+            'attributes' => [
+                'quantity',
+                'aliment' => ['name', 'unit', 'type']
+            ]
         ]);
+
+        // then encode to json
+        $data = $serializer->encode($data, 'json');
+
+        return new Response($data, 200, ['Content-Type' => 'application/json']);
     }
 
     /**
