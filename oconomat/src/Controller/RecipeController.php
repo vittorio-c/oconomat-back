@@ -25,7 +25,7 @@ class RecipeController extends AbstractController
      *      "/{recipe}",
      *      name="find",
      *      methods={"GET"}, 
-     *      requirements={"recipe": "\d"}
+     *      requirements={"recipe": "\d*"}
      * )
      */
     public function find(Recipe $recipe)
@@ -36,12 +36,17 @@ class RecipeController extends AbstractController
         $normalizers = array(new DateTimeNormalizer(), new ObjectNormalizer());
         $serializer = new Serializer($normalizers, $encoder);
 
-        // a callable is passed as third argument to handle circular references
-        $data = $serializer->serialize($recipe, 'json', [
-            'circular_reference_handler' => function ($object, $format, $context) {
-                return $object->getId();
-            }
+        // normalize with the data we want
+        $data = $serializer->normalize($recipe, null, [
+            'attributes' => [
+                'id', 'title', 'slug', 'type', 'createdAt', 'updatedAt',
+                'recipeSteps' => ['stepNumber', 'content'],
+                'ingredients' => ['quantity', 'aliment' => ['name', 'unit']]
+            ]
         ]);
+
+        // encode in json
+        $data = $serializer->encode($data, 'json');
 
         return new Response($data, 200, ['Content-Type' => 'application/json']);
     }
@@ -53,19 +58,17 @@ class RecipeController extends AbstractController
      *      "/{recipe}/ingredients",
      *      name="find_ingredients",
      *      methods={"GET"},
-     *      requirements={"recipe": "\d"}
+     *      requirements={"recipe": "\d*"}
      * )
      */
     public function findIngredients(Recipe $recipe)
     {
         // set up the serializer
-        // TODO make it as a service
         $encoder = [new JsonEncoder()];
         $normalizers = [new DateTimeNormalizer(), new ObjectNormalizer()];
         $serializer = new Serializer($normalizers, $encoder);
 
-        // first normalize only, in order to select specific attributes
-        // https://symfony.com/doc/current/components/serializer.html#selecting-specific-attributes 
+        // normalize with the data we want
         $data = $serializer->normalize($recipe->getIngredients(), null, [
             'attributes' => [
                 'quantity',
@@ -73,7 +76,7 @@ class RecipeController extends AbstractController
             ]
         ]);
 
-        // then encode to json
+        // encode in json
         $data = $serializer->encode($data, 'json');
 
         return new Response($data, 200, ['Content-Type' => 'application/json']);
@@ -86,15 +89,27 @@ class RecipeController extends AbstractController
      *      "/{recipe}/steps",
      *      name="find_steps",
      *      methods={"GET"},
-     *      requirements={"recipe": "\d"}
+     *      requirements={"recipe": "\d*"}
      * )
      */
     public function findSteps(Recipe $recipe)
     {
-        return $this->json([
-            'message' => 'hello RecipeController->findSteps()',
-            'steps' => $recipe->getRecipeSteps(),
+        // set up the serializer
+        $encoder = [new JsonEncoder()];
+        $normalizers = [new DateTimeNormalizer(), new ObjectNormalizer()];
+        $serializer = new Serializer($normalizers, $encoder);
+
+        // normalize with the data we want
+        $data = $serializer->normalize($recipe->getRecipeSteps(), null, [
+            'attributes' => [
+                'stepNumber', 'content',
+            ]
         ]);
+
+        // encode in json
+        $data = $serializer->encode($data, 'json');
+
+        return new Response($data, 200, ['Content-Type' => 'application/json']);
     }
 
     /**
@@ -108,6 +123,7 @@ class RecipeController extends AbstractController
      */
     public function create()
     {
+        // TODO : instantiate a new Recipe objet, then populate it with user's data, and persist it to database
         return $this->json('hello RecipeController->create()');
     }
 
@@ -118,15 +134,21 @@ class RecipeController extends AbstractController
      *      "/{recipe}",
      *      name="update",
      *      methods={"PUT"}, 
-     *      requirements={"recipe": "\d"}
+     *      requirements={"recipe": "\d*"}
      * )
      */
     public function update(Recipe $recipe)
     {
-        return $this->json([
-            'message' => 'hello RecipeController->update()',
-            'recipe' => $recipe,
-        ]);
+        // TODO : modify object's properties and persist them to database
+
+        // set up the serializer
+        $encoder = [new JsonEncoder()];
+        $normalizers = [new DateTimeNormalizer(), new ObjectNormalizer()];
+        $serializer = new Serializer($normalizers, $encoder);
+
+        // TODO : select and send data as json
+
+        return $this->json('hello RecipeController->update()');
     }
 
     /**
@@ -136,14 +158,13 @@ class RecipeController extends AbstractController
      *      "/{recipe}",
      *      name="delete",
      *      methods={"DELETE"}, 
-     *      requirements={"recipe": "\d"}
+     *      requirements={"recipe": "\d*"}
      * )
      */
     public function delete(Recipe $recipe)
     {
-        return $this->json([
-            'message' => 'hello RecipeController->delete()',
-            'recipe' => $recipe,
-        ]);
+        // TODO : delete objet from database
+
+        return $this->json('hello RecipeController->delete()');
     }
 }
