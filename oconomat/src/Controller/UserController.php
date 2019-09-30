@@ -4,8 +4,13 @@ namespace App\Controller;
 
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 /**
  * @Route("/api/user", name="user_")
@@ -19,15 +24,28 @@ class UserController extends AbstractController
      *      "/{user}",
      *      name="find",
      *      methods={"GET"},
-     *      requirements={"user": "\d"}
+     *      requirements={"user": "\d*"}
      * )
      */
     public function find(User $user)
     {
-        return $this->json([
-            'message' => 'hello UserController->find()',
-            'user' => $user,
+        $encoder = [new JsonEncoder()];
+        $normalizers = array(new DateTimeNormalizer(), new ObjectNormalizer());
+        $serializer = new Serializer($normalizers, $encoder);
+
+        // normalize with the data we want
+        $data = $serializer->normalize($user, null, [
+            'attributes' => [
+                'id', 'email', 'roles', 'firstname', 'lastname', 'createdAt', 'updatedAt',
+                'objectifs' => ['budget'],
+                'menus' => ['id', 'createdAt', 'updatedAt', 'recipes' => ['id']]
+            ]
         ]);
+
+        // encode in json
+        $data = $serializer->encode($data, 'json');
+
+        return new Response($data, 200, ['Content-Type' => 'application/json']);
     }
 
     /**
@@ -37,7 +55,7 @@ class UserController extends AbstractController
      *      "/{user}",
      *      name="update",
      *      methods={"PUT"},
-     *      requirements={"user": "\d"}
+     *      requirements={"user": "\d*"}
      * )
      */
     public function update(User $user)
