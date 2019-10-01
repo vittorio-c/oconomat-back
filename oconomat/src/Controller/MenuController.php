@@ -102,8 +102,12 @@ class MenuController extends AbstractController
      *      methods={"POST"}
      * )
      */
-    public function create()
+    public function create(Request $request)
     {
+        // decode json
+        $data = json_decode($request->getContent(), true);
+        $menu = new Menu();
+
         return $this->json('hello MenuController->create()');
     }
 

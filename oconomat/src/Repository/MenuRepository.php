@@ -31,7 +31,6 @@ class MenuRepository extends ServiceEntityRepository
                     ->getQuery();
         $menu = $query->execute();
         return $menu;
-
 /*
 SELECT recipe_menu.menu_id,  menu.created_at, recipe_menu.recipe_id, ingredient.aliment_id, food.name, food.price, food.unit, ingredient.quantity,(food.price*ingredient.quantity) AS total_price
 FROM `menu`
