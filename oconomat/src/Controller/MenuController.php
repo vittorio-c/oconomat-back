@@ -150,12 +150,29 @@ class MenuController extends AbstractController
      *      "/{menu}/shopping-list",
      *      name="shopping_list",
      *      methods={"GET"},
-     *      requirements={"menu": "\d"}
+     *      requirements={"menu": "\d*"}
      * )
      */
-    public function shoppingList()
+    public function shoppingList(Menu $menu)
     {
-        return $this->json('hello MenuController->shoppingList()');
+        // get shopping list
+        $data = $this->getDoctrine()
+                     ->getRepository(Menu::class)
+                     ->getShoppinigListFromMenuId($menu->getId());
+
+        // construct shopping list's metadatas
+        $metadata = [
+            'menuId' => $menu->getId(),
+            'createdAt' => $menu->getCreatedAt(),
+            'userId' => $menu->getUser()->getId()
+        ];
+
+        // prepare php array
+        $shoppingList = [];
+        $shoppingList['metadata'] = $metadata;
+        $shoppingList['shoppingList'] = $data;
+        // serialize and send 
+        return $this->json($shoppingList);
     }
 
     /**
