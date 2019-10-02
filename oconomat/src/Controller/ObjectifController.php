@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+
+use App\Controller\RecipeController;
 use App\Entity\User;
 use App\Entity\Menu;
 use App\Entity\Objectif;
+use App\Entity\Recipe;
 use App\Form\ObjectifType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,6 +38,11 @@ class ObjectifController extends AbstractController
     public function generateMenu(Request $request)
     {
 
+        //$em = $this->getDoctrine()->getRepository(Recipe::class);
+        //$totalPrice = $em->getRecipieTotalPrice(3);
+        //dump($totalPrice);
+        //exit;
+
         $form = $this->createForm(ObjectifType::class);
 
         $data = json_decode($request->getContent(), true);
@@ -46,7 +54,25 @@ class ObjectifController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $em->persist($objectives);
             $em->flush();
-            return $this->json('nouvel objectif créé');
+            //return $this->json('nouvel objectif créé');
         }
+
+
+        // j'ai le budget, et il est enregistré en bdd avec l'utilisateur relié
+        // objectif : 
+        //      - générer une liste de recette 
+        //      - qui respecte le budget donné
+        //      - l'associser à un nouveau menu
+        // requis :
+        //      - connaître le prix total par recette
+        //      - générer pour lee moment 21 recettes (sans les classer par type)
+        //      - il faut que la somme du prix de ces 21 recettes ne dépasse pas le budget
+        //      - je peux les ajouter une par une pour le moment jusqu'à en avoir 21
+        //      - puis comparer la somme avec le budget : si supérieur, tu enlève la plus chère
+        //      - et tu restes
+        //
+        // au moment de la requete bdd, générer une colonne calculée pour le prix de la recette
+        //
+        //
     }
 }

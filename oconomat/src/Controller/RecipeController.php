@@ -72,7 +72,7 @@ class RecipeController extends AbstractController
         $data = $serializer->normalize($recipe->getIngredients(), null, [
             'attributes' => [
                 'quantity',
-                'aliment' => ['name', 'unit', 'type']
+                'aliment' => ['name', 'unit', 'type', 'price']
             ]
         ]);
 

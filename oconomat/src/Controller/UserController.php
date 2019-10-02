@@ -29,6 +29,8 @@ class UserController extends AbstractController
      */
     public function find(User $user)
     {
+        // TODO : mettre uniquement un lien pour le menu
+        // TODO : pour les objectifs, mettre le "currentObjectif" uniqueemnt
         $encoder = [new JsonEncoder()];
         $normalizers = array(new DateTimeNormalizer(), new ObjectNormalizer());
         $serializer = new Serializer($normalizers, $encoder);
