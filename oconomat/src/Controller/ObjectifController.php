@@ -37,6 +37,84 @@ class ObjectifController extends AbstractController
      */
     public function generateMenu(Request $request)
     {
+        $data = json_decode($request->getContent(), true);
+        $budget = $data['budget'];
+        $quantity = 21;
+        $targetPrice = $budget / $quantity;
+
+        $em = $this->getDoctrine()->getRepository(Recipe::class);
+        $recipes = $em->findAll();
+
+        // tableau avec toutes les recettes et leur prix total
+        $recipesPrice = [];
+        foreach ($recipes as $recipe) {
+            $price = $em->getRecipieTotalPrice($recipe->getId()); 
+            //dump($price);
+            $recipesPrice[] = ['id' => $recipe->getId(), 'price' => intval($price[0]['totalPrice'])];
+        }
+
+        // tableau avec uniquement des recettes correspondant plus ou moins au prix objectif
+        $recipesTarget = [];
+
+        foreach ($recipesPrice as $recipe) {
+            $diff = intval($recipe['price']) - $targetPrice;
+
+            if ($diff <= 5 && $diff >= -5) {
+                $recipesTarget[] = $recipe;
+            }
+        }
+        $recipesTarget = array_column($recipesTarget, 'price', 'id');
+
+        // tableau menu avec les 21 recettes
+        $menu = [];
+        $a = array_keys($recipesTarget);
+        dump($recipesTarget);
+        dump($a);
+
+        // built menu with random recipes
+        for ($i = 0; $i < $quantity; $i++) {
+            $n = rand(0, count($recipesTarget) - 1);
+            $key = $a[$n];
+            $value = $recipesTarget[$key];
+
+            if (!array_key_exists($key, $menu)) {
+                $menu[$key] = $value;
+            } else {
+                $i--;
+                continue;
+            }
+        }
+        dump($menu);
+
+        // calcul du prix total du menu
+        $total = 0;
+        foreach ($menu as $m) {
+            $total += $m;
+        }
+        dump('total : ' . $total);
+        dump('budget : ' . $data['budget']);
+
+        if ($total <= $data['budget']) {
+            dump('yeah');
+        } else {
+            // get id of most expensive recipe from $menu
+            $max = array_search(max($menu), $menu);
+            dump($max);
+            // get id of lowest expensive recipe from $recipeTarget
+            // TODO faire la meme chose sur un tableau qui ne contient aucune valeur déjà selectionée
+            $min = array_search(min($recipesTarget), $recipesTarget);
+            dump($min);
+            unset($menu[$max]);
+            $menu[$min] = $recipesTarget[$min];
+            //array_splice($menu, $max, 1);
+            dump($menu);
+            //$min = 
+            //dump($prices);
+            //dump($max);
+            dump('nope');
+        }
+        exit;
+
 
         //$em = $this->getDoctrine()->getRepository(Recipe::class);
         //$totalPrice = $em->getRecipieTotalPrice(3);
@@ -56,6 +134,7 @@ class ObjectifController extends AbstractController
             $em->flush();
             //return $this->json('nouvel objectif créé');
         }
+
 
 
         // j'ai le budget, et il est enregistré en bdd avec l'utilisateur relié
