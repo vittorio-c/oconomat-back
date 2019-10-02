@@ -15,18 +15,31 @@ class SecurityController extends AbstractController
     /**
      * @Route("/login", name="app_login")
      */
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    public function login(AuthenticationUtils $authenticationUtils, Request $request): Response
     {
         // if ($this->getUser()) {
         //    $this->redirectToRoute('target_path');
         // }
+        //$user = $this->getUser();
+        //dump($security->getUser());
 
         // get the login error if there is one
-        $error = $authenticationUtils->getLastAuthenticationError();
+        //$error = $authenticationUtils->getLastAuthenticationError();
         // last username entered by the user
-        $lastUsername = $authenticationUtils->getLastUsername();
+        //$lastUsername = $authenticationUtils->getLastUsername();
+        // if($user == null){
+        //     return $this->json("Les identifiants sont incorrects");
+        //     exit;
+        // }
+        //return $this->render('security/login.html.twig', ['last_username' => $lastUsername, 'error' => $error]);
+        // return $this->json([
+        //     'success' => "Authentification de l'utilisateur avec succès",
+        //     "email" => $user->getEmail()
+        // ]);
 
-        return $this->render('security/login.html.twig', ['last_username' => $lastUsername, 'error' => $error]);
+        //$user = $this->getUser();
+
+        return $this->json('hello');
     }
 
     /**
@@ -38,7 +51,7 @@ class SecurityController extends AbstractController
     }
 
     /**
-     * @Route("/api/register", name="app_register" methods={"POST"})
+     * @Route("/api/register", name="app_register", methods={"POST"})
      */
     public function register(Request $request, UserPasswordEncoderInterface $encoder)
     {
