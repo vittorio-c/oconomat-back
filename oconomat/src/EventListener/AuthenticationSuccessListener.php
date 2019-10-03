@@ -16,16 +16,19 @@ class AuthenticationSuccessListener
         $user = $event->getUser();
 
 
-        $data['data'] = array(
-            'roles' => $user->getRoles(),
-        );
+        if (!$user instanceof UserInterface) {
+
+            $event->setData([
+                'userId' => $user->getId(),
+                'payload' => $event->getData(),
+            ]);
+
+            return;
+        }
+
 
         //$event->setData($data);
 
-        $event->setData([
-            'userId' => $user->getId(),
-            'payload' => $event->getData(),
-        ]);
 
 
         //return $event;
