@@ -67,24 +67,40 @@ class ObjectifController extends AbstractController
 
         // tableau menu avec les 21 recettes
         $menu = [];
+        // tableau numérique temporaire ([numKey => recipeId]) pour pouvoir tirer au hasard
+        // une recette sur la base du nombre généré plus bas
         $a = array_keys($recipesTarget);
-        dump($recipesTarget);
-        dump($a);
+        dump('recipesTarget', $recipesTarget);
+        dump('tempArray', $a);
 
         // built menu with random recipes
         for ($i = 0; $i < $quantity; $i++) {
+            // génére un nb au hasard compris dans la range du nombre total de recettes
             $n = rand(0, count($recipesTarget) - 1);
+            // stocke dans $key l'id de la recette générée au hasard
             $key = $a[$n];
+            // stocke dans $value la valeur (prix total) de la recette générée au hasard
             $value = $recipesTarget[$key];
 
             if (!array_key_exists($key, $menu)) {
+                // construit le nouveau tableau menu si l'item n'est pas déjà présent
                 $menu[$key] = $value;
             } else {
+                // sinon, relance la boucle au même stade
                 $i--;
                 continue;
             }
         }
-        dump($menu);
+
+        // tableau avec les recettes non sélectionnées
+        $left = [];
+        foreach ($recipesTarget as $key => $value) {
+            if (!array_key_exists($key, $menu)) {
+                $left[$key] = $value;
+            }
+        }
+        dump('left', $left);
+        dump('menu', $menu);
 
         // calcul du prix total du menu
         $total = 0;
@@ -98,13 +114,17 @@ class ObjectifController extends AbstractController
             dump('yeah');
         } else {
             // get id of most expensive recipe from $menu
+            // NB max et min retournent la valeur de l'élément trouvé, et non l'index
+            // il faut donc chercher ensuite avec array_search
             $max = array_search(max($menu), $menu);
             dump($max);
             // get id of lowest expensive recipe from $recipeTarget
-            // TODO faire la meme chose sur un tableau qui ne contient aucune valeur déjà selectionée
-            $min = array_search(min($recipesTarget), $recipesTarget);
+            $min = array_search(min($left), $left);
             dump($min);
+
+            // enlever le plus chere
             unset($menu[$max]);
+            // ajouter le moins cher
             $menu[$min] = $recipesTarget[$min];
             //array_splice($menu, $max, 1);
             dump($menu);
@@ -153,5 +173,10 @@ class ObjectifController extends AbstractController
         // au moment de la requete bdd, générer une colonne calculée pour le prix de la recette
         //
         //
+    }
+
+    public function adjustMenu($menu)
+    {
+
     }
 }
