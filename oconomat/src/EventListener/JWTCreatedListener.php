@@ -11,16 +11,16 @@ class JWTCreatedListener
 
     public function onJwtCreated(JWTCreatedEvent $event): void
     {
-        $user = $event->getUser();
+        // $user = $event->getUser();
 
-        $payload = $event->getData();
-        $payload['id'] = $user->getId();
+        // $payload = $event->getData();
+        // $payload['id'] = $user->getId();
 
-        //$event->setData($payload);
+        // //$event->setData($payload);
 
-        $event->setData([
-            'payload' => $event->getData(),
-        ]);
+        // $event->setData([
+        //     'payload' => $event->getData(),
+        // ]);
     }
 
 }
