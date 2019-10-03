@@ -19,6 +19,19 @@ class RecipeRepository extends ServiceEntityRepository
         parent::__construct($registry, Recipe::class);
     }
 
+    public function getRecipieTotalPrice($recipeId)
+    {
+        $qb = $this->createQueryBuilder('r');
+        $query = $qb->select('r.id AS recipeId','sum((a.price*i.quantity)) AS totalPrice')
+                    ->innerJoin('r.ingredients', 'i')
+                    ->innerJoin('i.aliment', 'a')
+                    ->where('r.id = ?1')
+                    ->setParameter(1, $recipeId)
+                    ->getQuery();
+        $menu = $query->execute();
+        return $menu;
+    }
+
     // /**
     //  * @return Recipe[] Returns an array of Recipe objects
     //  */
@@ -34,7 +47,7 @@ class RecipeRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
-    */
+     */
 
     /*
     public function findOneBySomeField($value): ?Recipe
@@ -46,5 +59,5 @@ class RecipeRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
-    */
+     */
 }
