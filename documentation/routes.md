@@ -32,7 +32,7 @@
 | Endpoint  | Méthode HTTP | Contrôleur->method() | Description |
 | --        | --           | --                   | --    |
 | /api/menu/{id} | GET | MenuController->find() | récupération d'un menu (=de la liste des recettes associées) |
-| /api/menu/create | POST | MenuController->create() | création d'un menu (=soumission du formulaire avec objectifs) |
+| /api/objectif/menu/generate | POST | MenuController->create() | création d'un menu (=soumission du formulaire avec objectifs) |
 | /api/menu/{id} | UPDATE | MenuController->update() | modification d'un menu existant |
 | /api/menu/{id} | DELETE | MenuController->delete() | suppression d'un menu existant |
 

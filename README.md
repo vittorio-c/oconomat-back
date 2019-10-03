@@ -107,7 +107,10 @@ Ex :
 
 ```
 
+**`/api/menu/{userId}/last`**  
+Retourne le dernier menu appartenant à l'utilisateur
 
+Ex: TODO
 
 
 
