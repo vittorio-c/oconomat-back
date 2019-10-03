@@ -37,35 +37,73 @@ class ObjectifController extends AbstractController
      */
     public function generateMenu(Request $request)
     {
+        $form = $this->createForm(ObjectifType::class);
+
         $data = json_decode($request->getContent(), true);
 
-        $budget = $data['budget'];
-        $quantity = 21;
-        // prix objectif par recette
-        $targetPrice = $budget / $quantity;
+        $form->submit($data);
 
-        $recipes = $this->getAllRecipesWithPrices();
+        $doctrine = $this->getDoctrine();
 
-        // on écrase le tableau précédent avec un tableau 
-        // contenant uniquement des recettes correspondant plus ou moins au prix objectif
-        $recipes = $this->getTargetedRecipesWithPrices($recipes, $targetPrice);
+        if ($form->isValid()) {
+            $user = $this->getUser();
 
-        $menus = $this->buildMenu($recipes, $quantity);
+            $budget = $data['budget'];
+            $quantity = 21;
+            // prix objectif par recette
+            $targetPrice = $budget / $quantity;
 
-        // calcul du prix total du menu
-        $total = $this->getMenuTotalPrice($menus['menu']);
+            $recipes = $this->getAllRecipesWithPrices();
 
-        $menu = $this->adjustMenu($menus['menu'], $menus['menuLeft'], $budget);
+            // on écrase le tableau précédent avec un tableau 
+            // contenant uniquement des recettes correspondant plus ou moins au prix objectif
+            $recipes = $this->getTargetedRecipesWithPrices($recipes, $targetPrice);
 
-        return $this->json($menu);
-        exit;
+            $menus = $this->buildMenu($recipes, $quantity);
+
+            // calcul du prix total du menu
+            $total = $this->getMenuTotalPrice($menus['menu']);
+
+            $menu = $this->adjustMenu($menus['menu'], $menus['menuLeft'], $budget);
+
+            $menuObject = new Menu();
+            foreach ($menu as $key => $value) {
+                $repository = $doctrine->getRepository(Recipe::class);
+                $recipe = $repository->find($key);
+                $menuObject->addRecipe($recipe);
+            }
+            $menuObject->setUser($user);
+
+            $objectives = $form->getData();
+            $objectives->setUser($user);
+
+            $em = $doctrine->getManager();
+            $em->persist($objectives);
+            $em->persist($menuObject);
+
+            $em->flush();
+            return $this->json("menu créé et enregsitré en bdd");
+        } else {
+            return $this->json("raté");
+        }
+        //$data = json_decode($request->getContent(), true);
+
+        //dump($menuObject);
+        //dump($menu);
+        //dump($this->getMenuTotalPrice($menu));
+        //exit;
+
+        // créer un menu
+        // boucler sur le tableau
+        // créer l'objet recette a partir de l'id
+        // l'ajouter a un menu
 
         // LATER
         //$em = $this->getDoctrine()->getRepository(Recipe::class);
         //$totalPrice = $em->getRecipieTotalPrice(3);
         //dump($totalPrice);
         //exit;
-
+/*
         $form = $this->createForm(ObjectifType::class);
 
         $data = json_decode($request->getContent(), true);
@@ -81,7 +119,7 @@ class ObjectifController extends AbstractController
         }
 
 
-
+ */
         // j'ai le budget, et il est enregistré en bdd avec l'utilisateur relié
         // objectif : 
         //      - générer une liste de recette 
