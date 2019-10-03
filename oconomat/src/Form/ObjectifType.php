@@ -15,7 +15,7 @@ class ObjectifType extends AbstractType
             ->add('budget')
         //->add('createdAt')
         //->add('updatedAt')
-            ->add('user')
+        //->add('user')
         ;
     }
 
