@@ -19,6 +19,21 @@ class ObjectifRepository extends ServiceEntityRepository
         parent::__construct($registry, Objectif::class);
     }
 
+/*
+SELECT recipe.title AS recipeTitle, recipe.id AS recipeId, ingredient.id AS ingredientId, ingredient.quantity AS quantity, food.name AS foodName, food.price AS foodPrice, (food.price*ingredient.quantity) AS ingredientPrice
+FROM `recipe`
+INNER JOIN ingredient ON recipe.id = ingredient.recipe_id
+INNER JOIN food ON ingredient.aliment_id = food.id
+WHERE recipe.id = 2
+
+SELECT SUM((food.price*ingredient.quantity)) AS totalPrice
+FROM `recipe`
+INNER JOIN ingredient ON recipe.id = ingredient.recipe_id
+INNER JOIN food ON ingredient.aliment_id = food.id
+WHERE recipe.id = 2
+
+ */
+
     // /**
     //  * @return Objectif[] Returns an array of Objectif objects
     //  */
@@ -34,7 +49,7 @@ class ObjectifRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
-    */
+     */
 
     /*
     public function findOneBySomeField($value): ?Objectif
@@ -46,5 +61,5 @@ class ObjectifRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
-    */
+     */
 }

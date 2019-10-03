@@ -42,6 +42,7 @@ class Menu
     public function __construct()
     {
         $this->recipes = new ArrayCollection();
+        $this->setCreatedAt(new \DateTime());
     }
 
     public function getId(): ?int
