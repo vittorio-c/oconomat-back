@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Controller\RecipeController;
+use App\Controller\MenuController;
 use App\Entity\User;
 use App\Entity\Menu;
 use App\Entity\Objectif;
@@ -84,7 +85,16 @@ class ObjectifController extends AbstractController
             $em->persist($menuObject);
 
             $em->flush();
-            return $this->json("menu créé et enregsitré en bdd");
+            $lastId = $menuObject->getId();
+
+            //$menuController = new MenuController();
+            //$jsonContent = [];
+            //$jsonContent["message"] = "menu généré et enregistré avec succès !";
+            //$jsonContent["generatedMenu"] = $menuObject;
+
+            //return $this->json("menu créé et enregsitré en bdd");
+            return $this->redirectToRoute('menu_find', ['menu' => $lastId], 301);
+            //return new Response($jsonContent, 200, ['Content-Type' => 'application/json']);
         } else {
             return $this->json("raté");
         }
@@ -164,20 +174,6 @@ class ObjectifController extends AbstractController
             }
         }
         return $array;
-    }
-
-    public function getTargetedRecipesWithPrices($recipes, $targetPrice)
-    {
-        $newRecipes = [];
-        foreach ($recipes as $recipe) {
-            $diff = intval($recipe['price']) - $targetPrice;
-
-            if ($diff <= 5 && $diff >= -5) {
-                $newRecipes[] = $recipe;
-            }
-        }
-        $newRecipes = array_column($newRecipes, 'price', 'id');
-        return $newRecipes;
     }
 
     public function buildMenu($lunchs, $dinners, $quantity)
