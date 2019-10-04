@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-
 use App\Controller\RecipeController;
+use App\Controller\MenuController;
 use App\Entity\User;
 use App\Entity\Menu;
 use App\Entity\Objectif;
@@ -38,40 +38,43 @@ class ObjectifController extends AbstractController
     public function generateMenu(Request $request)
     {
         $form = $this->createForm(ObjectifType::class);
-
         $data = json_decode($request->getContent(), true);
-
         $form->submit($data);
-
         $doctrine = $this->getDoctrine();
 
         if ($form->isValid()) {
             $user = $this->getUser();
 
             $budget = $data['budget'];
-            $quantity = 21;
+            $quantity = 14;
             // prix objectif par recette
-            $targetPrice = $budget / $quantity;
+            $targetPrice = round($budget / $quantity);
 
-            $recipes = $this->getAllRecipesWithPrices();
+            $lunchs = $doctrine->getRepository(Recipe::class)->findBy(['type' => 'dejeuner']);
+            $dinners = $doctrine->getRepository(Recipe::class)->findBy(['type' => 'diner']);
 
-            // on écrase le tableau précédent avec un tableau 
+            // on écrase les tableaux précédents avec des tableaux 
             // contenant uniquement des recettes correspondant plus ou moins au prix objectif
-            $recipes = $this->getTargetedRecipesWithPrices($recipes, $targetPrice);
+            $lunchs = $this->getRecipesPrice($lunchs, $targetPrice);
+            $dinners = $this->getRecipesPrice($dinners, $targetPrice);
 
-            $menus = $this->buildMenu($recipes, $quantity);
+            // construction du menu
+            $menus = $this->buildMenu($lunchs, $dinners, $quantity);
 
             // calcul du prix total du menu
             $total = $this->getMenuTotalPrice($menus['menu']);
 
+            // ajustements pour être sur de ne pas dépasser le prix
             $menu = $this->adjustMenu($menus['menu'], $menus['menuLeft'], $budget);
 
+            // passage en objets et enregistrements bdd
             $menuObject = new Menu();
             foreach ($menu as $key => $value) {
                 $repository = $doctrine->getRepository(Recipe::class);
                 $recipe = $repository->find($key);
                 $menuObject->addRecipe($recipe);
             }
+
             $menuObject->setUser($user);
 
             $objectives = $form->getData();
@@ -82,60 +85,19 @@ class ObjectifController extends AbstractController
             $em->persist($menuObject);
 
             $em->flush();
-            return $this->json("menu créé et enregsitré en bdd");
+            $lastId = $menuObject->getId();
+
+            //$menuController = new MenuController();
+            //$jsonContent = [];
+            //$jsonContent["message"] = "menu généré et enregistré avec succès !";
+            //$jsonContent["generatedMenu"] = $menuObject;
+
+            //return $this->json("menu créé et enregsitré en bdd");
+            return $this->redirectToRoute('menu_find', ['menu' => $lastId], 301);
+            //return new Response($jsonContent, 200, ['Content-Type' => 'application/json']);
         } else {
             return $this->json("raté");
         }
-        //$data = json_decode($request->getContent(), true);
-
-        //dump($menuObject);
-        //dump($menu);
-        //dump($this->getMenuTotalPrice($menu));
-        //exit;
-
-        // créer un menu
-        // boucler sur le tableau
-        // créer l'objet recette a partir de l'id
-        // l'ajouter a un menu
-
-        // LATER
-        //$em = $this->getDoctrine()->getRepository(Recipe::class);
-        //$totalPrice = $em->getRecipieTotalPrice(3);
-        //dump($totalPrice);
-        //exit;
-/*
-        $form = $this->createForm(ObjectifType::class);
-
-        $data = json_decode($request->getContent(), true);
-
-        $form->submit($data);
-
-        if ($form->isValid()) {
-            $objectives = $form->getData();
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($objectives);
-            $em->flush();
-            //return $this->json('nouvel objectif créé');
-        }
-
-
- */
-        // j'ai le budget, et il est enregistré en bdd avec l'utilisateur relié
-        // objectif : 
-        //      - générer une liste de recette 
-        //      - qui respecte le budget donné
-        //      - l'associser à un nouveau menu
-        // requis :
-        //      - connaître le prix total par recette
-        //      - générer pour lee moment 21 recettes (sans les classer par type)
-        //      - il faut que la somme du prix de ces 21 recettes ne dépasse pas le budget
-        //      - je peux les ajouter une par une pour le moment jusqu'à en avoir 21
-        //      - puis comparer la somme avec le budget : si supérieur, tu enlève la plus chère
-        //      - et tu restes
-        //
-        // au moment de la requete bdd, générer une colonne calculée pour le prix de la recette
-        //
-        //
     }
 
     public function adjustMenu($menu, $left, $budget)
@@ -145,19 +107,41 @@ class ObjectifController extends AbstractController
             // il faut donc chercher ensuite avec array_search pour avoir l'id de la recette
 
             // get id of most expensive recipe from $menu
-            $max = array_search(max($menu), $menu);
-            dump('max supprimé : ', $menu[$max]);
-            // get id of lowest expensive recipe from $left
-            $min = array_search(min($left), $left);
-            dump('min ajouté : ', $left[$min]);
+            $max = max(array_column($menu, 'price'));
+
+            $maxId = array_keys(array_filter(
+                $menu, 
+                function ($item) use ($max) {
+                    return $item['price'] === $max;
+                }
+            ))[0]; 
+
+            $maxType = $menu[$maxId]['type'];
+
+            // s'assurer que l'item ajouté sera du même type que l'item enlevé
+            $leftFilterdByType = array_filter(
+                $left,
+                function ($item) use ($maxType) {
+                    return $item['type'] === $maxType;
+                }
+            );
+
+            $min = min(array_column($leftFilterdByType, 'price'));
+
+            $minId = array_keys(array_filter(
+                $leftFilterdByType,
+                function ($item) use ($min) {
+                    return $item['price'] === $min;
+                }
+            ))[0];
 
             // enlever le plus chere du menu
-            unset($menu[$max]);
+            unset($menu[$maxId]);
             // ajouter le moins cher au menu
-            $menu[$min] = $left[$min];
+            $menu[$minId] = $left[$minId];
             // enlever le moins cher du $left pour 
             // être certain de ne pas retomber dessus à la prochaine boucle
-            unset($left[$min]);
+            unset($left[$minId]);
         }
 
         return $menu;
@@ -166,72 +150,73 @@ class ObjectifController extends AbstractController
     public function getMenuTotalPrice($menu)
     {
         $total = 0;
-        foreach ($menu as $m) {
-            $total += $m;
+        foreach ($menu as $id => $value) {
+            $total += $value['price'];
         }
         return $total;
     }
 
-    public function getAllRecipesWithPrices()
+    public function getRecipesPrice(array $recipes, $targetPrice)
     {
         $em = $this->getDoctrine()->getRepository(Recipe::class);
-        $recipes = $em->findAll();
 
-        // tableau avec toutes les recettes et leur prix total
+        // tableau avec id de la  recette et prix total
         $array = [];
         foreach ($recipes as $recipe) {
             $price = $em->getRecipieTotalPrice($recipe->getId()); 
-            $array[] = ['id' => $recipe->getId(), 'price' => intval($price[0]['totalPrice'])];
+            $diff = $price[0]['totalPrice'] - $targetPrice;
+
+            if ($diff <= 5 && $diff >= -5) {
+                $array[$recipe->getId()] = [
+                    'price' => intval($price[0]['totalPrice']),
+                    'type' => $recipe->getType()
+                ];
+            }
         }
         return $array;
     }
 
-    public function getTargetedRecipesWithPrices($recipes, $targetPrice)
-    {
-        $newRecipes = [];
-        foreach ($recipes as $recipe) {
-            $diff = intval($recipe['price']) - $targetPrice;
-
-            if ($diff <= 5 && $diff >= -5) {
-                $newRecipes[] = $recipe;
-            }
-        }
-        $newRecipes = array_column($newRecipes, 'price', 'id');
-        return $newRecipes;
-    }
-
-    public function buildMenu($recipes, $quantity)
+    public function buildMenu($lunchs, $dinners, $quantity)
     {
         // tableau menu avec les 21 recettes sélectionnées
         $menu = [];
         // tableau avec les recettes non sélectionnées
         $menuLeft = [];
+        $allRecipes = $lunchs + $dinners;
 
         // tableau numérique temporaire ([numKey => recipeId]) pour pouvoir tirer au hasard
         // une recette sur la base du nombre généré plus bas
-        $array = array_keys($recipes);
+        $arrayLunchs = array_keys($lunchs);
+        $arrayDinners = array_keys($dinners);
 
-        // built menu with random recipes
-        for ($i = 0; $i < $quantity; $i++) {
-            // génére un nb au hasard compris dans la range du nombre total de recettes
-            $n = rand(0, count($recipes) - 1);
-            // stocke dans $key l'id de la recette générée au hasard
-            $key = $array[$n];
-            // stocke dans $value la valeur (prix total) de la recette générée au hasard
-            $value = $recipes[$key];
-
+        // 7 lunchs
+        for ($i = 0; $i < $quantity / 2; $i++) {
+            $n = rand(0, count($lunchs) - 1);
+            $key = $arrayLunchs[$n];
+            $value = $lunchs[$key];
             if (!array_key_exists($key, $menu)) {
-                // construit le nouveau tableau menu si l'item n'est pas déjà présent
                 $menu[$key] = $value;
             } else {
-                // sinon, relance la boucle au même stade
                 $i--;
                 continue;
             }
         }
 
-        // built menu left for futur purposes
-        foreach ($recipes as $key => $value) {
+        // 7 dinners
+        for ($i = 0; $i < $quantity / 2; $i++) {
+            $n = rand(0, count($dinners) - 1);
+            $key = $arrayDinners[$n];
+            $value = $dinners[$key];
+            if (!array_key_exists($key, $menu)) {
+                $menu[$key] = $value;
+            } else {
+                $i--;
+                continue;
+            }
+        }
+
+        // built menu "left" for futures purposes
+        foreach ($allRecipes as $key => $value) {
             if (!array_key_exists($key, $menu)) {
                 $menuLeft[$key] = $value;
             }
