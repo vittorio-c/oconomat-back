@@ -11,38 +11,13 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 
+
 class SecurityController extends AbstractController
 {
 
-    public function login(AuthenticationUtils $authenticationUtils, Request $request): Response
-    {
-        // if ($this->getUser()) {
-        //    $this->redirectToRoute('target_path');
-        // }
-        //$user = $this->getUser();
-        //dump($security->getUser());
-
-        // get the login error if there is one
-        //$error = $authenticationUtils->getLastAuthenticationError();
-        // last username entered by the user
-        //$lastUsername = $authenticationUtils->getLastUsername();
-        // if($user == null){
-        //     return $this->json("Les identifiants sont incorrects");
-        //     exit;
-        // }
-        //return $this->render('security/login.html.twig', ['last_username' => $lastUsername, 'error' => $error]);
-        // return $this->json([
-        //     'success' => "Authentification de l'utilisateur avec succès",
-        //     "email" => $user->getEmail()
-        // ]);
-
-        //$user = $this->getUser();
-
-        return $this->json('hello');
-    }
 
     /**
-     * @Route("/logout", name="app_logout")
+     * @Route("/api/logout", name="app_logout")
      */
     public function logout()
     {
@@ -64,21 +39,41 @@ class SecurityController extends AbstractController
         $lastName = $request->request->get('lastname');
         $email = $request->request->get('email');
         $clearPassword = $request->request->get('password');
+        $confirmPassword = $request->request->get('passwordConfirm');
+
+        $emailList = $this->getDoctrine()->getRepository(User::class)->getEmailList();
+
+        //dump($emailList);
+
+        foreach($emailList as $emailArray){
+            foreach($emailArray as $value){
+                if($email == $value){
+                    return $this->json('Email déjà existante');
+                }
+            }
+        }
+
+        if($clearPassword == $confirmPassword){
+            
+            $encodedPassword = $encoder->encodePassword($user, $clearPassword);
+
+            $user->setFirstname($firstName);
+            $user->setLastname($lastName);
+            $user->setEmail($email);
+            $user->setRoles(['ROLE_USER']);
+            $user->setPassword($encodedPassword);
+    
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($user);
+            $em->flush();
+    
+            return $this->json('Utilisateur ajouté en base de données !');
+        }else{
+            return $this->json('Les mots de passe ne correspondent pas !');
+        }
 
 
-        $encodedPassword = $encoder->encodePassword($user, $clearPassword);
 
-        $user->setFirstname($firstName);
-        $user->setLastname($lastName);
-        $user->setEmail($email);
-        $user->setRoles(['ROLE_USER']);
-        $user->setPassword($encodedPassword);
-
-        $em = $this->getDoctrine()->getManager();
-        $em->persist($user);
-        $em->flush();
-
-        return $this->json('Utilisateur ajouté en base de données !');
 
     }
 }

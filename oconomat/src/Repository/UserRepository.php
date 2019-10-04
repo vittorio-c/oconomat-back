@@ -47,4 +47,12 @@ class UserRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function getEmailList()
+    {
+        return $this->createQueryBuilder('u')
+            ->select('u.email')
+            ->getQuery()
+            ->getResult();
+    }
 }
