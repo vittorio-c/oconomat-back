@@ -109,8 +109,62 @@ Retourne les informations d'un utilisateur déjà enregistré en bdd
 Ex :
 
 ```json
+{
+  "id": 118,
+  "email": "elouis@nicolas.com",
+  "roles": [
+    "ROLE_USER"
+  ],
+  "firstname": "Thérèse",
+  "lastname": "Hamon",
+  "createdAt": "2019-10-04T09:47:00+00:00",
+  "updatedAt": null,
+  "objectifs": [
+    {
+      "budget": 83
+    }
+  ],
+  "menus": [
+    {
+      "id": 133,
+      "createdAt": "2019-10-04T09:47:00+00:00",
+      "updatedAt": null,
+      "recipes": [
+        {
+          "id": 373
+        },
+        {
+          "id": 384
+        },
+        {
+          "id": 387
+        },
+        etc.
+      ]
+    },
+    {
+      "id": 147,
+      "createdAt": "2019-10-04T09:47:00+00:00",
+      "updatedAt": null,
+      "recipes": [
+        {
+          "id": 372
+        },
+        {
+          "id": 374
+        },
+        {
+          "id": 384
+        },
+        etc.
+      ]
+    }
+  ]
+}
 
 ```
+
+Ce résultat va changer !
 
 **GET `/api/menu/{userId}/last`**  
 
