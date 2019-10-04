@@ -22,7 +22,7 @@ class RecipeRepository extends ServiceEntityRepository
     public function getRecipieTotalPrice($recipeId)
     {
         $qb = $this->createQueryBuilder('r');
-        $query = $qb->select('r.id AS recipeId','sum((a.price*i.quantity)) AS totalPrice')
+        $query = $qb->select('sum((a.price*i.quantity)) AS totalPrice')
                     ->innerJoin('r.ingredients', 'i')
                     ->innerJoin('i.aliment', 'a')
                     ->where('r.id = ?1')
