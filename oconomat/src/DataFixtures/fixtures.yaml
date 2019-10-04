@@ -1,6 +1,9 @@
 parameters:
   encodedPassword: $argon2id$v=19$m=65536,t=4,p=1$wsupbX6adiipsQZqBhGVUw$+n6Jkpa/JBR22q+gw00Iv3O3MZ4w7TCNEEvivVU1gj8
   roles: ["ROLE_USER"]
+  type1: petit-dejeuner
+  type2: dejeuner
+  type3: diner
 
 App\Entity\User:
     user_{1..23}:
@@ -31,9 +34,9 @@ App\Entity\Food:
         labels: '2x @label_*'
 
 App\Entity\Recipe:
-    recipe_{1..80}:
+    recipe_{1..90}:
         title: '<word()>'
-        type: '<word()>'
+        type: '50%? <{type2}> : <{type3}>'
         createdAt: '<date_create()>'           
              
 App\Entity\RecipeStep:
