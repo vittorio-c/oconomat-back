@@ -28,6 +28,7 @@ class MenuRepository extends ServiceEntityRepository
                     ->innerJoin('i.aliment', 'a')
                     ->where('m.id = ?1')
                     ->setParameter(1, $menuId)
+                    ->orderBy('foodId', 'ASC')
                     ->getQuery();
         $menu = $query->execute();
         return $menu;
