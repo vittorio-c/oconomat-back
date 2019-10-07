@@ -40,33 +40,43 @@ class MenuController extends AbstractController
         $encoder = [new JsonEncoder(new JsonEncode(JSON_UNESCAPED_SLASHES))];
 
         // get User url as a callback
-        $userUrl = function ($user) {
+        $userCallback = function ($user) {
+            $id = $user->getId();
             $url = $this->generateUrl(
                 'user_find',
                 ['user' => $user->getId()],
                 UrlGeneratorInterface::ABSOLUTE_URL
             );
-            return $url; 
+            $data = [
+                'id' => $id,
+                'url' => $url
+            ];
+            return $data; 
         };
 
         // get Recipe urls as a callback
-        $recipeUrl = function ($recipes) {
-            $urls = [];
+        $recipeCallback = function ($recipes) {
+            $data = [];
             foreach ($recipes as $recipe) {
-                $urls[] = $this->generateUrl(
+                $id = $recipe->getId();
+                $url = $this->generateUrl(
                     'recipe_find',
                     ['recipe' => $recipe->getId()],
                     UrlGeneratorInterface::ABSOLUTE_URL
                 );
+                $data[] = [
+                    'id' => $id,
+                    'url' => $url
+                ];
             }
-            return $urls;
+            return $data;
         };
 
         // set up the callbacks on user and recipes
         $defaultContext = [
             AbstractNormalizer::CALLBACKS => [
-                'user' => $userUrl,
-                'recipes' => $recipeUrl,
+                'user' => $userCallback,
+                'recipes' => $recipeCallback,
             ],
         ];
 
@@ -82,9 +92,7 @@ class MenuController extends AbstractController
         // normalize with the data we want
         $data = $serializer->normalize($menu, null, [
             'attributes' => [
-                'id', 'createdAt', 'updatedAt',
-                'user' => ['id'],
-                'recipes' => ['id']
+                'id', 'createdAt', 'updatedAt', 'user', 'recipes'
             ]
         ]);
 
@@ -147,6 +155,21 @@ class MenuController extends AbstractController
                      ->getRepository(Menu::class)
                      ->getShoppinigListFromMenuId($menu->getId());
 
+        // merge duplicate items
+        $newData = [];
+        foreach ($data as $key => $value) {
+            $arrayTemp = array_column($newData, 'foodId');
+            if (!in_array($value['foodId'], $arrayTemp)) {
+                $newData[] = $value;
+            } else {
+                $id = array_search($value['foodId'], $arrayTemp);
+                dump($id);
+                $newData[$id]['quantity'] += $value['quantity'];
+                $newData[$id]['totalPrice'] += $value['totalPrice'];
+            }
+        }
+        $data = $newData;
+
         // construct shopping list's metadatas
         $metadata = [
             'menuId' => $menu->getId(),
@@ -158,6 +181,7 @@ class MenuController extends AbstractController
         $shoppingList = [];
         $shoppingList['metadata'] = $metadata;
         $shoppingList['shoppingList'] = $data;
+
         // serialize and send 
         return $this->json($shoppingList);
     }
