@@ -1,10 +1,12 @@
 # Les routes disponibles
 
-**GET `/api/menu/{menu-id}`** \
+## `/api/menu/{menu-id}` \
+
+Méthode : GET 
 
 Retourne un menu accompagné de plusieurs liens vers les recettes qui le composent, ainsi que d'un lien vers son utilisateur. 
 
-Ex: 
+Ex de réponse :
 
 ```json
 {
@@ -15,11 +17,14 @@ Ex:
   "recipes": [
     "http://vmlocal:8001/api/recipe/83",
     "http://vmlocal:8001/api/recipe/95",
+    "etc"
     ]
 }
 ```
 
-**GET `/api/recipe/{recipe_id}`**  
+## `/api/recipe/{recipe_id}`  
+
+Méthode : GET 
 
 Retourne une seule recette, accompagnée de ses ingrédients et de ses étapes.
 
@@ -49,14 +54,19 @@ Ex :
         "unit": "kg"
       }
     }
+  {
+    "etc": "etc"
+    }
 }
 ```
 
-**GET `/api/recipe/{recipe_id}/ingredients`**  
+## `/api/recipe/{recipe_id}/ingredients`  
+
+Méthode : GET 
 
 Retourne les ingrédients de la recette associées
 
-Ex :
+Ex de réponse :
 
 ```json
 [
@@ -75,15 +85,20 @@ Ex :
       "unit": "kg",
       "type": "omnis"
     }
-  }
+  },
+  {
+    "etc": "etc"
+    }
 ]
 ```
 
-**GET `/api/recipe/{recipe_id}/steps`**  
+## `/api/recipe/{recipe_id}/steps`  
+
+Méthode : GET 
 
 Retourne les étapes de préparation de la recette associée
 
-Ex : 
+Ex de réponse :
 
 ```json
 [
@@ -102,11 +117,13 @@ Ex :
 ]
 ```
 
-**GET `/api/user/{user_id}`**  
+## `/api/user/{user_id}`  
+
+Méthode : GET 
 
 Retourne les informations d'un utilisateur déjà enregistré en bdd
 
-Ex :
+Ex de réponse :
 
 ```json
 {
@@ -139,7 +156,7 @@ Ex :
         {
           "id": 387
         },
-        etc.
+        "etc": "etc"
       ]
     },
     {
@@ -156,7 +173,7 @@ Ex :
         {
           "id": 384
         },
-        etc.
+        "etc": "etc"
       ]
     }
   ]
@@ -164,23 +181,41 @@ Ex :
 
 ```
 
-Ce résultat va changer !
+> Attention : Ce résultat va changer !
 
-**GET `/api/menu/{userId}/last`**  
+
+## `/api/menu/user/{userId}/last`  
+
+Méthode : GET 
 
 Retourne le dernier menu appartenant à l'utilisateur
 
-**TODO**
+Ex de réponse :
+
+```json
+{
+  "id": 25,
+  "createdAt": "2019-10-08T10:28:31+02:00",
+  "updatedAt": null,
+  "user": "http://vmlocal:8001/api/user/43",
+  "recipes": [
+    "http://vmlocal:8001/api/recipe/87",
+    "http://vmlocal:8001/api/recipe/92",
+    "http://vmlocal:8001/api/recipe/106",
+    "etc": "etc"
+  ]
+}
+```
 
 
 
-**POST `/api/objectif/menu/generate`**  
+##  `/api/objectif/menu/generate`  
+
+Méthode : POST 
 
 Permet de créer un nouveau menu en fonction d'un budget donné 
 
-Ex :
-
-<u>Request POST</u>
+Ex de requête :
 
 ```json
 {
@@ -188,7 +223,9 @@ Ex :
 }
 ```
 
-<u>Réponse</u>
+> requete json en post
+
+Ex de réponse :
 
 ```json
 {
@@ -215,15 +252,60 @@ Ex :
 }
 ```
 
-(le menu créé avec ses recettes; cela sera modifié plus tard, avec notamment l'information du cout total du nouveau menu)
+## `/api/menu/{menu}/shopping-list`  
+
+Méthode : GET 
+
+Retourne une liste de course générée à partir d'un menu
+
+Ex de réponse :
+
+```json
+{
+  "metadata": {
+    "menuId": 30,
+    "createdAt": "2019-10-07T10:28:31+02:00",
+    "userId": 41
+  },
+  "shoppingList": [
+    {
+      "foodId": 287,
+      "name": "aut",
+      "quantity": 1,
+      "price": 0,
+      "unit": "kg",
+      "totalPrice": "0"
+    },
+    {
+      "foodId": 373,
+      "name": "et",
+      "quantity": 1,
+      "price": 3,
+      "unit": "kg",
+      "totalPrice": "3"
+    },
+    {
+      "foodId": 446,
+      "name": "pariatur",
+      "quantity": 1,
+      "price": 2,
+      "unit": "kg",
+      "totalPrice": "2"
+    },
+    {
+        "ext" : "etc"
+    }
+
+```
 
 
+##  `/api/login_check`
 
-**POST `/api/login_check`**
+Méthode : POST 
 
 Permet de se login sur le site.
 
-<u>Request POST</u>
+Ex de requête :
 
 ```
 {
@@ -234,7 +316,7 @@ Permet de se login sur le site.
 
 > Content-Type: application/json
 
-<u>Réponse</u>
+Ex de réponse :
 
 ```json
 {
@@ -246,9 +328,13 @@ Permet de se login sur le site.
 ```
 
 
-**POST `/api/register`**  
+##  `/api/register`  
+
+Méthode : POST 
 
 Permet de créer un nouvel utilisateur
+
+Ex de requête :
 
 ```
 firstname: Mickael
