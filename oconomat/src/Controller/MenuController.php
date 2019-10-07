@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Menu;
+use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -94,24 +95,6 @@ class MenuController extends AbstractController
     }
 
     /**
-     * Create a new menu
-     *
-     * @Route(
-     *      "/create",
-     *      name="create",
-     *      methods={"POST"}
-     * )
-     */
-    public function create(Request $request)
-    {
-        // decode json
-        $data = json_decode($request->getContent(), true);
-        $menu = new Menu();
-
-        return $this->json('hello MenuController->create()');
-    }
-
-    /**
      * Update a menu
      *
      * @Route(
@@ -177,6 +160,23 @@ class MenuController extends AbstractController
         $shoppingList['shoppingList'] = $data;
         // serialize and send 
         return $this->json($shoppingList);
+    }
+
+    /**
+     * Get last menu from user
+     *
+     * @Route(
+     *      "/user/{user}/last",
+     *      name="last",
+     *      methods={"GET"},
+     *      requirements={"user": "\d*"}
+     * )
+     */
+    public function lastMenu(User $user)
+    {
+        $em = $this->getDoctrine()->getRepository(Menu::class);
+        $menu = $em->findOneBy(['user' => $user->getId()], ['createdAt' => 'DESC']);
+        return $this->redirectToRoute('menu_find', ['menu' => $menu->getId()], 301);
     }
 
     /**
