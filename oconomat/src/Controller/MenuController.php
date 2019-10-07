@@ -147,6 +147,21 @@ class MenuController extends AbstractController
                      ->getRepository(Menu::class)
                      ->getShoppinigListFromMenuId($menu->getId());
 
+        // merge duplicate items
+        $newData = [];
+        foreach ($data as $key => $value) {
+            $arrayTemp = array_column($newData, 'foodId');
+            if (!in_array($value['foodId'], $arrayTemp)) {
+                $newData[] = $value;
+            } else {
+                $id = array_search($value['foodId'], $arrayTemp);
+                dump($id);
+                $newData[$id]['quantity'] += $value['quantity'];
+                $newData[$id]['totalPrice'] += $value['totalPrice'];
+            }
+        }
+        $data = $newData;
+
         // construct shopping list's metadatas
         $metadata = [
             'menuId' => $menu->getId(),
@@ -158,6 +173,7 @@ class MenuController extends AbstractController
         $shoppingList = [];
         $shoppingList['metadata'] = $metadata;
         $shoppingList['shoppingList'] = $data;
+
         // serialize and send 
         return $this->json($shoppingList);
     }
