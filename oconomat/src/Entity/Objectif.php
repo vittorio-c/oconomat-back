@@ -17,7 +17,7 @@ class Objectif
     private $id;
 
     /**
-     * @ORM\Column(type="float")
+     * @ORM\Column(type="float", options={"default" : 0})
      */
     private $budget;
 
