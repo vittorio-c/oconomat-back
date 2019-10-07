@@ -200,7 +200,18 @@ class MenuController extends AbstractController
     {
         $em = $this->getDoctrine()->getRepository(Menu::class);
         $menu = $em->findOneBy(['user' => $user->getId()], ['createdAt' => 'DESC']);
-        return $this->redirectToRoute('menu_find', ['menu' => $menu->getId()], 301);
+
+        if ($menu) {
+            // if last menu exist
+            return $this->redirectToRoute('menu_find', ['menu' => $menu->getId()], 301);
+        } else {
+            $data = json_encode([
+                'status' => 404,
+                'message' => 'Cet utilisateur ne possède pas encore de menu.'
+            ]);
+
+            return new Response($data, 404, ['Content-Type' => 'application/json']);
+        }
     }
 
     /**
