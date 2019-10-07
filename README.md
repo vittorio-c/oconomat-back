@@ -10,15 +10,34 @@ Ex de réponse :
 
 ```json
 {
-  "id": 5,
-  "createdAt": "2019-09-28T18:19:04+02:00",
+  "id": 25,
+  "createdAt": "2019-10-08T10:28:31+02:00",
   "updatedAt": null,
-  "user": "http://vmlocal:8001/api/user/9",
+  "user": {
+    "id": 43,
+    "url": "http://vmlocal:8001/api/user/43"
+  },
   "recipes": [
-    "http://vmlocal:8001/api/recipe/83",
-    "http://vmlocal:8001/api/recipe/95",
-    "etc"
-    ]
+    {
+      "id": 87,
+      "url": "http://vmlocal:8001/api/recipe/87"
+    },
+    {
+      "id": 92,
+      "url": "http://vmlocal:8001/api/recipe/92"
+    },
+    {
+      "id": 106,
+      "url": "http://vmlocal:8001/api/recipe/106"
+    },
+    {
+      "id": 109,
+      "url": "http://vmlocal:8001/api/recipe/109"
+    },
+    {
+       "etc": "etc"        
+    }
+  ]
 }
 ```
 
@@ -197,12 +216,30 @@ Ex de réponse :
   "id": 25,
   "createdAt": "2019-10-08T10:28:31+02:00",
   "updatedAt": null,
-  "user": "http://vmlocal:8001/api/user/43",
+  "user": {
+    "id": 43,
+    "url": "http://vmlocal:8001/api/user/43"
+  },
   "recipes": [
-    "http://vmlocal:8001/api/recipe/87",
-    "http://vmlocal:8001/api/recipe/92",
-    "http://vmlocal:8001/api/recipe/106",
-    "etc": "etc"
+    {
+      "id": 87,
+      "url": "http://vmlocal:8001/api/recipe/87"
+    },
+    {
+      "id": 92,
+      "url": "http://vmlocal:8001/api/recipe/92"
+    },
+    {
+      "id": 106,
+      "url": "http://vmlocal:8001/api/recipe/106"
+    },
+    {
+      "id": 109,
+      "url": "http://vmlocal:8001/api/recipe/109"
+    },
+    {
+       "etc": "etc"        
+    }
   ]
 }
 ```
