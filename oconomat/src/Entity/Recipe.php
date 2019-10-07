@@ -58,6 +58,11 @@ class Recipe
      */
     private $menus;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $image;
+
     public function __construct()
     {
         $this->recipeSteps = new ArrayCollection();
@@ -214,6 +219,18 @@ class Recipe
         if ($this->menus->contains($menu)) {
             $this->menus->removeElement($menu);
         }
+
+        return $this;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): self
+    {
+        $this->image = $image;
 
         return $this;
     }
