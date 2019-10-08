@@ -9,6 +9,7 @@ use App\Entity\Menu;
 use App\Entity\Objectif;
 use App\Entity\Recipe;
 use App\Form\ObjectifType;
+use App\Serializer\Normalizer\MenuNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,7 +36,7 @@ class ObjectifController extends AbstractController
      *      methods="POST",
      * )
      */
-    public function generateMenu(Request $request)
+    public function generateMenu(Request $request, MenuNormalizer $menuNormalizer)
     {
         $form = $this->createForm(ObjectifType::class);
         $data = json_decode($request->getContent(), true);
@@ -67,6 +68,9 @@ class ObjectifController extends AbstractController
             // ajustements pour être sur de ne pas dépasser le prix
             $menu = $this->adjustMenu($menus['menu'], $menus['menuLeft'], $budget);
 
+            // nouveau total
+            $total = $this->getMenuTotalPrice($menu);
+
             // passage en objets et enregistrements bdd
             $menuObject = new Menu();
             foreach ($menu as $key => $value) {
@@ -85,16 +89,25 @@ class ObjectifController extends AbstractController
             $em->persist($menuObject);
 
             $em->flush();
-            $lastId = $menuObject->getId();
+            //$lastId = $menuObject->getId();
 
             //$menuController = new MenuController();
             //$jsonContent = [];
             //$jsonContent["message"] = "menu généré et enregistré avec succès !";
             //$jsonContent["generatedMenu"] = $menuObject;
 
-            //return $this->json("menu créé et enregsitré en bdd");
-            return $this->redirectToRoute('menu_find', ['menu' => $lastId], 301);
-            //return new Response($jsonContent, 200, ['Content-Type' => 'application/json']);
+            $encoder = [new JsonEncoder(new JsonEncode(JSON_UNESCAPED_SLASHES))];
+            $serializer = new Serializer([$menuNormalizer], $encoder);
+
+            $context['metadata'] = [
+                'status' => 200,
+                'message' => 'Menu généré avec succès.',
+                'coutMenu' => $total
+            ];
+
+            $data = $serializer->serialize($menuObject, 'json', $context);
+
+            return new Response($data, 200, ['Content-Type' => 'application/json']);
         } else {
             return $this->json("raté");
         }
