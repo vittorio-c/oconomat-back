@@ -62,4 +62,15 @@ WHERE recipe.id = 2
         ;
     }
      */
+
+    public function getLastBudget($userId)
+    {
+        return $this->createQueryBuilder('o')
+        ->andWhere('o.user = :val')
+        ->orderBy('o.createdAt', 'DESC')
+        ->setParameter('val', $userId)
+        ->getQuery()
+        ->getResult()
+    ;  
+    }
 }
