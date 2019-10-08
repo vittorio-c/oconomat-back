@@ -277,7 +277,12 @@ Ex de réponse :
 
 ```json
 {
-  "id": 25,
+  "metadata": {
+    "status": 200,
+    "message": "Menu généré avec succès.",
+    "coutMenu": 89
+  },
+  "idMenu": 25,
   "createdAt": "2019-10-08T10:28:31+02:00",
   "updatedAt": null,
   "user": {
