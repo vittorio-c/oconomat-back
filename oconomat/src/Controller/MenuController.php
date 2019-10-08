@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Menu;
 use App\Entity\User;
+use App\Serializer\Normalizer\MenuNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,10 +24,16 @@ use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
  */
 class MenuController extends AbstractController
 {
+    private $encoder;
+
+    public function __construct()
+    {
+        $this->encoder = [new JsonEncoder(new JsonEncode(JSON_UNESCAPED_SLASHES))];
+    }
+
     /**
      * Find a menu (READ)
-     * TODO try to export that methods as an external service
-     * in order to keep the controller thin
+     * TODO handle exception on this method
      *
      * @Route(
      *      "/{menu}",
@@ -35,61 +42,10 @@ class MenuController extends AbstractController
      *      requirements={"menu": "\d*"}
      * )
      */
-    public function find(Menu $menu)
+    public function find(Menu $menu, MenuNormalizer $menuNormalizer)
     {
-        $encoder = [new JsonEncoder(new JsonEncode(JSON_UNESCAPED_SLASHES))];
-
-        // get User url as a callback
-        $userUrl = function ($user) {
-            $url = $this->generateUrl(
-                'user_find',
-                ['user' => $user->getId()],
-                UrlGeneratorInterface::ABSOLUTE_URL
-            );
-            return $url; 
-        };
-
-        // get Recipe urls as a callback
-        $recipeUrl = function ($recipes) {
-            $urls = [];
-            foreach ($recipes as $recipe) {
-                $urls[] = $this->generateUrl(
-                    'recipe_find',
-                    ['recipe' => $recipe->getId()],
-                    UrlGeneratorInterface::ABSOLUTE_URL
-                );
-            }
-            return $urls;
-        };
-
-        // set up the callbacks on user and recipes
-        $defaultContext = [
-            AbstractNormalizer::CALLBACKS => [
-                'user' => $userUrl,
-                'recipes' => $recipeUrl,
-            ],
-        ];
-
-        // set up normalizer with the callbacks attached
-        $normalizers = [
-            new DateTimeNormalizer(),
-            new GetSetMethodNormalizer(null, null, null, null, null, $defaultContext)
-        ];
-
-        // set up serializer
-        $serializer = new Serializer($normalizers, $encoder);
-
-        // normalize with the data we want
-        $data = $serializer->normalize($menu, null, [
-            'attributes' => [
-                'id', 'createdAt', 'updatedAt',
-                'user' => ['id'],
-                'recipes' => ['id']
-            ]
-        ]);
-
-        // encode in json
-        $data = $serializer->encode($data, 'json');
+        $serializer = new Serializer([$menuNormalizer], $this->encoder);
+        $data = $serializer->serialize($menu, 'json');
 
         return new Response($data, 200, ['Content-Type' => 'application/json']);
     }
@@ -147,6 +103,21 @@ class MenuController extends AbstractController
                      ->getRepository(Menu::class)
                      ->getShoppinigListFromMenuId($menu->getId());
 
+        // merge duplicate items
+        $newData = [];
+        foreach ($data as $key => $value) {
+            $arrayTemp = array_column($newData, 'foodId');
+            if (!in_array($value['foodId'], $arrayTemp)) {
+                $newData[] = $value;
+            } else {
+                $id = array_search($value['foodId'], $arrayTemp);
+                dump($id);
+                $newData[$id]['quantity'] += $value['quantity'];
+                $newData[$id]['totalPrice'] += $value['totalPrice'];
+            }
+        }
+        $data = $newData;
+
         // construct shopping list's metadatas
         $metadata = [
             'menuId' => $menu->getId(),
@@ -158,6 +129,7 @@ class MenuController extends AbstractController
         $shoppingList = [];
         $shoppingList['metadata'] = $metadata;
         $shoppingList['shoppingList'] = $data;
+
         // serialize and send 
         return $this->json($shoppingList);
     }
@@ -172,11 +144,22 @@ class MenuController extends AbstractController
      *      requirements={"user": "\d*"}
      * )
      */
-    public function lastMenu(User $user)
+    public function lastMenu(User $user, MenuNormalizer $menuNormalizer)
     {
         $em = $this->getDoctrine()->getRepository(Menu::class);
         $menu = $em->findOneBy(['user' => $user->getId()], ['createdAt' => 'DESC']);
-        return $this->redirectToRoute('menu_find', ['menu' => $menu->getId()], 301);
+
+        if ($menu) {
+            $serializer = new Serializer([$menuNormalizer], $this->encoder);
+            $data = $serializer->serialize($menu, 'json');
+            return new Response($data, 200, ['Content-Type' => 'application/json']);
+        } else {
+            $data = json_encode([
+                'status' => 404,
+                'message' => 'Cet utilisateur ne possède pas encore de menu.'
+            ]);
+            return new Response($data, 404, ['Content-Type' => 'application/json']);
+        }
     }
 
     /**
