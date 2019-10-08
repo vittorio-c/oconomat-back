@@ -19,7 +19,9 @@ class AuthenticationSuccessListener
         if (!$user instanceof UserInterface) {
 
             $event->setData([
-                'userId' => $user->getId(),
+                'id' => $user->getId(),
+                'firstname' => $user->getFirstname(),
+                'lastname' => $user->getLastname(),
                 'payload' => $event->getData(),
             ]);
 

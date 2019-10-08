@@ -17,7 +17,7 @@ class Objectif
     private $id;
 
     /**
-     * @ORM\Column(type="float")
+     * @ORM\Column(type="float", options={"default" : 0})
      */
     private $budget;
 
@@ -40,6 +40,11 @@ class Objectif
     public function __construct()
     {
         $this->createdAt = new \DateTime();
+    }
+
+    public function __toString()
+    {
+        return $this->budget;
     }
 
     public function getId(): ?int
