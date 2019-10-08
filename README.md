@@ -266,25 +266,33 @@ Ex de réponse :
 
 ```json
 {
-  "id": 51,
-  "createdAt": "2019-10-04T15:59:28+02:00",
+  "id": 25,
+  "createdAt": "2019-10-08T10:28:31+02:00",
   "updatedAt": null,
-  "user": "http://api.oconomat.fr/api/user/65",
+  "user": {
+    "id": 43,
+    "url": "http://vmlocal:8001/api/user/43"
+  },
   "recipes": [
-    "http://api.oconomat.fr/api/recipe/87",
-    "http://api.oconomat.fr/api/recipe/93",
-    "http://api.oconomat.fr/api/recipe/94",
-    "http://api.oconomat.fr/api/recipe/95",
-    "http://api.oconomat.fr/api/recipe/101",
-    "http://api.oconomat.fr/api/recipe/109",
-    "http://api.oconomat.fr/api/recipe/113",
-    "http://api.oconomat.fr/api/recipe/139",
-    "http://api.oconomat.fr/api/recipe/142",
-    "http://api.oconomat.fr/api/recipe/147",
-    "http://api.oconomat.fr/api/recipe/150",
-    "http://api.oconomat.fr/api/recipe/156",
-    "http://api.oconomat.fr/api/recipe/164",
-    "http://api.oconomat.fr/api/recipe/167"
+    {
+      "id": 87,
+      "url": "http://vmlocal:8001/api/recipe/87"
+    },
+    {
+      "id": 92,
+      "url": "http://vmlocal:8001/api/recipe/92"
+    },
+    {
+      "id": 106,
+      "url": "http://vmlocal:8001/api/recipe/106"
+    },
+    {
+      "id": 109,
+      "url": "http://vmlocal:8001/api/recipe/109"
+    },
+    {
+       "etc": "etc"        
+    }
   ]
 }
 ```

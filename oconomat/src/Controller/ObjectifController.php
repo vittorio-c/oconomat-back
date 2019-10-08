@@ -224,4 +224,19 @@ class ObjectifController extends AbstractController
 
         return ['menu' => $menu, 'menuLeft' => $menuLeft];
     }
+
+    /**
+     * @Route(
+     *      "/budget/last/{id}",
+     *      name="budget_last",
+     *      methods="GET",
+     * )
+     */
+    public function getLastBudget(User $user)
+    {
+        $userBudget = $this->getDoctrine()->getRepository(Objectif::class)->getLastBudget($user);
+
+        return $this->json($userBudget[0]->getBudget());
+    }
+
 }
