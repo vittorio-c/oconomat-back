@@ -203,13 +203,16 @@ Ex de réponse :
 > Attention : Ce résultat va changer !
 
 
-## `/api/menu/user/{userId}/last`  
+## `/api/menu/user/last`  
 
 Méthode : GET 
 
-Retourne le dernier menu appartenant à l'utilisateur
+Retourne le dernier menu appartenant à l'utilisateur connecté
 
-Ex de réponse :
+> pas besoin de mettre l'id de l'user dans l'url !  \
+> la récupération de l'user connecté se fait côté back  \
+
+Ex de réponse 200 :
 
 ```json
 {
@@ -244,6 +247,14 @@ Ex de réponse :
 }
 ```
 
+Ex de réponse 404 (l'utilisateur connecté ne possède pas encore de menu) :
+
+```json
+{
+  "status": 404,
+  "message": "L'utilisateur connecté ne possède pas encore de menu."
+}
+```
 
 
 ##  `/api/objectif/menu/generate`  

@@ -34,6 +34,7 @@ class MenuController extends AbstractController
     /**
      * Find a menu (READ)
      * TODO handle exception on this method
+     * TODO limit access to menu's owner
      *
      * @Route(
      *      "/{menu}",
@@ -138,14 +139,15 @@ class MenuController extends AbstractController
      * Get last menu from user
      *
      * @Route(
-     *      "/user/{user}/last",
+     *      "/user/last",
      *      name="last",
      *      methods={"GET"},
      *      requirements={"user": "\d*"}
      * )
      */
-    public function lastMenu(User $user, MenuNormalizer $menuNormalizer)
+    public function lastMenu(MenuNormalizer $menuNormalizer)
     {
+        $user = $this->getUser();
         $em = $this->getDoctrine()->getRepository(Menu::class);
         $menu = $em->findOneBy(['user' => $user->getId()], ['createdAt' => 'DESC']);
 
@@ -153,13 +155,14 @@ class MenuController extends AbstractController
             $serializer = new Serializer([$menuNormalizer], $this->encoder);
             $data = $serializer->serialize($menu, 'json');
             return new Response($data, 200, ['Content-Type' => 'application/json']);
-        } else {
-            $data = json_encode([
-                'status' => 404,
-                'message' => 'Cet utilisateur ne possède pas encore de menu.'
-            ]);
-            return new Response($data, 404, ['Content-Type' => 'application/json']);
         }
+
+        $data = json_encode([
+            'status' => 404,
+            'message' => 'L\'utilisateur connecté ne possède pas encore de menu.'
+        ]);
+
+        return new Response($data, 404, ['Content-Type' => 'application/json']);
     }
 
     /**
