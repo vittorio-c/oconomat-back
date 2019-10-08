@@ -45,10 +45,20 @@ class MenuController extends AbstractController
      */
     public function find(Menu $menu, MenuNormalizer $menuNormalizer)
     {
-        $serializer = new Serializer([$menuNormalizer], $this->encoder);
-        $data = $serializer->serialize($menu, 'json');
+        $user = $this->getUser();
 
-        return new Response($data, 200, ['Content-Type' => 'application/json']);
+        if ($user === $menu->getUser()) {
+            $serializer = new Serializer([$menuNormalizer], $this->encoder);
+            $data = $serializer->serialize($menu, 'json');
+            return new Response($data, 200, ['Content-Type' => 'application/json']);
+        }
+
+        $data = json_encode([
+            'status' => 401,
+            'message' => 'L\'utilisateur connecté n\'a pas les droits nécessaires pour accéder à cette ressource.'
+        ]);
+
+        return new Response($data, 401, ['Content-Type' => 'application/json']);
     }
 
     /**
@@ -136,13 +146,12 @@ class MenuController extends AbstractController
     }
 
     /**
-     * Get last menu from user
+     * Get last menu from connected user
      *
      * @Route(
      *      "/user/last",
      *      name="last",
-     *      methods={"GET"},
-     *      requirements={"user": "\d*"}
+     *      methods={"GET"}
      * )
      */
     public function lastMenu(MenuNormalizer $menuNormalizer)
