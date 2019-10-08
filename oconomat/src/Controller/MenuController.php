@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Menu;
 use App\Entity\User;
+use App\Serializer\Normalizer\MenuNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,10 +24,16 @@ use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
  */
 class MenuController extends AbstractController
 {
+    private $encoder;
+
+    public function __construct()
+    {
+        $this->encoder = [new JsonEncoder(new JsonEncode(JSON_UNESCAPED_SLASHES))];
+    }
+
     /**
      * Find a menu (READ)
-     * TODO try to export that methods as an external service
-     * in order to keep the controller thin
+     * TODO handle exception on this method
      *
      * @Route(
      *      "/{menu}",
@@ -35,69 +42,10 @@ class MenuController extends AbstractController
      *      requirements={"menu": "\d*"}
      * )
      */
-    public function find(Menu $menu)
+    public function find(Menu $menu, MenuNormalizer $menuNormalizer)
     {
-        $encoder = [new JsonEncoder(new JsonEncode(JSON_UNESCAPED_SLASHES))];
-
-        // get User url as a callback
-        $userCallback = function ($user) {
-            $id = $user->getId();
-            $url = $this->generateUrl(
-                'user_find',
-                ['user' => $user->getId()],
-                UrlGeneratorInterface::ABSOLUTE_URL
-            );
-            $data = [
-                'id' => $id,
-                'url' => $url
-            ];
-            return $data; 
-        };
-
-        // get Recipe urls as a callback
-        $recipeCallback = function ($recipes) {
-            $data = [];
-            foreach ($recipes as $recipe) {
-                $id = $recipe->getId();
-                $url = $this->generateUrl(
-                    'recipe_find',
-                    ['recipe' => $recipe->getId()],
-                    UrlGeneratorInterface::ABSOLUTE_URL
-                );
-                $data[] = [
-                    'id' => $id,
-                    'url' => $url
-                ];
-            }
-            return $data;
-        };
-
-        // set up the callbacks on user and recipes
-        $defaultContext = [
-            AbstractNormalizer::CALLBACKS => [
-                'user' => $userCallback,
-                'recipes' => $recipeCallback,
-            ],
-        ];
-
-        // set up normalizer with the callbacks attached
-        $normalizers = [
-            new DateTimeNormalizer(),
-            new GetSetMethodNormalizer(null, null, null, null, null, $defaultContext)
-        ];
-
-        // set up serializer
-        $serializer = new Serializer($normalizers, $encoder);
-
-        // normalize with the data we want
-        $data = $serializer->normalize($menu, null, [
-            'attributes' => [
-                'id', 'createdAt', 'updatedAt', 'user', 'recipes'
-            ]
-        ]);
-
-        // encode in json
-        $data = $serializer->encode($data, 'json');
+        $serializer = new Serializer([$menuNormalizer], $this->encoder);
+        $data = $serializer->serialize($menu, 'json');
 
         return new Response($data, 200, ['Content-Type' => 'application/json']);
     }
@@ -196,20 +144,20 @@ class MenuController extends AbstractController
      *      requirements={"user": "\d*"}
      * )
      */
-    public function lastMenu(User $user)
+    public function lastMenu(User $user, MenuNormalizer $menuNormalizer)
     {
         $em = $this->getDoctrine()->getRepository(Menu::class);
         $menu = $em->findOneBy(['user' => $user->getId()], ['createdAt' => 'DESC']);
 
         if ($menu) {
-            // if last menu exist
-            return $this->redirectToRoute('menu_find', ['menu' => $menu->getId()], 301);
+            $serializer = new Serializer([$menuNormalizer], $this->encoder);
+            $data = $serializer->serialize($menu, 'json');
+            return new Response($data, 200, ['Content-Type' => 'application/json']);
         } else {
             $data = json_encode([
                 'status' => 404,
                 'message' => 'Cet utilisateur ne possède pas encore de menu.'
             ]);
-
             return new Response($data, 404, ['Content-Type' => 'application/json']);
         }
     }
