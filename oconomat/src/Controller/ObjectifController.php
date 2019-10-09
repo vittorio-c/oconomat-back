@@ -53,10 +53,18 @@ class ObjectifController extends AbstractController
         if ($form->isValid()) {
             $user = $this->getUser();
             $budget = $data['budget'];
-            $quantity = 14;
+            $quantity = 20;
 
             //$menuGenerator = new MenuGenerator();
             $menu = $menuGenerator->generateMenu($budget, $quantity);
+
+            if ($menu === false) {
+                $data = json_encode([
+                    'status' => '404',
+                    'message' => 'Budget trop haut ou trop bas, veuillez recommencer.'
+                ]);
+                return new Response($data, 404, ['Content-Type' => 'application/json']);
+            }
 
             // total
             $total = $menuGenerator->getMenuTotalPrice($menu);
