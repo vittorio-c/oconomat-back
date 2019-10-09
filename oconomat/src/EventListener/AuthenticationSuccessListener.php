@@ -18,8 +18,18 @@ class AuthenticationSuccessListener
 
         if (!$user instanceof UserInterface) {
 
+            $test =  $user->getObjectifs();
+
+            $property = null;
+
+            if (!$test->isEmpty())
+            {
+                $property =  $test->last()->getBudget();
+            }
+
             $event->setData([
                 'id' => $user->getId(),
+                'budget' => $property,
                 'firstname' => $user->getFirstname(),
                 'lastname' => $user->getLastname(),
                 'payload' => $event->getData(),
