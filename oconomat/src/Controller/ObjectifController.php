@@ -96,6 +96,7 @@ class ObjectifController extends AbstractController
             $context['metadata'] = [
                 'status' => 200,
                 'message' => 'Menu généré avec succès.',
+                'budget' => $budget,
                 'coutMenu' => $total
             ];
 

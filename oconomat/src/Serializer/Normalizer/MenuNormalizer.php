@@ -3,9 +3,11 @@
 namespace App\Serializer\Normalizer;
 
 use App\Entity\Menu;
+use App\Entity\Recipe;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * Menu normalizer
@@ -13,10 +15,12 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 class MenuNormalizer implements NormalizerInterface
 {
     private $router;
+    private $em;
 
-    public function __construct(UrlGeneratorInterface $router)
+    public function __construct(UrlGeneratorInterface $router, EntityManagerInterface $em)
     {
         $this->router = $router;
+        $this->em = $em;
     }
 
     /**
@@ -34,9 +38,13 @@ class MenuNormalizer implements NormalizerInterface
         foreach ($recipes as $recipe) {
             $id = $recipe->getId();
             $url = $this->getUrl('recipe_find', ['recipe' => $id], UrlGeneratorInterface::ABSOLUTE_URL);
+            $type = $recipe->getType();
+            $price = $this->em->getRepository(Recipe::class)->getRecipieTotalPrice($id);
             $recipesArray[] = [
                 'id' => $id,
-                'url' => $url
+                'url' => $url,
+                'type' => $type,
+                'price' => intval($price[0]['totalPrice'])
             ];
         }
 
