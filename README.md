@@ -313,6 +313,19 @@ Ex de réponse :
 }
 ```
 
+## `/api/objectif/budget/last/{userId}`
+
+Retourne le dernier budget entré par l'utilisateur
+
+Methode : GET
+
+Ex de réponse :
+
+```json
+72
+```
+
+
 ## `/api/menu/{menu}/shopping-list`  
 
 Méthode : GET 
