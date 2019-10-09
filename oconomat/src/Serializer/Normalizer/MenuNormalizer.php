@@ -41,7 +41,7 @@ class MenuNormalizer implements NormalizerInterface
         }
 
         $data = [
-            'id' => $object->getId(),
+            'idMenu' => $object->getId(),
             'createdAt' => $createdAt,
             'updatedAt' => $updatedAt,
             'user' => [
@@ -50,6 +50,10 @@ class MenuNormalizer implements NormalizerInterface
             ],
             'recipes' => $recipesArray
         ];
+
+        if (isset($context)) {
+            $data = $context + $data;
+        }
 
         return $data;
     }
