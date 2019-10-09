@@ -97,7 +97,7 @@ class ObjectifController extends AbstractController
                 'status' => 200,
                 'message' => 'Menu généré avec succès.',
                 'budget' => $budget,
-                'coutMenu' => $total
+                'totalPrice' => $total
             ];
 
             $data = $serializer->serialize($menuObject, 'json', $context);

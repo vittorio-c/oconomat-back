@@ -44,6 +44,7 @@ class MenuGenerator
 
         // calcul du prix total du menu
         $total = $this->getMenuTotalPrice($menus['menu']);
+        dump(min(array_column($menus['menuLeft'], 'price')));
 
         // ajustements pour être sur de ne pas dépasser le prix
         $menu = $this->adjustMenu($menus['menu'], $menus['menuLeft'], $budget);
@@ -62,43 +63,42 @@ class MenuGenerator
     public function adjustMenu($menu, $left, $budget)
     {
         while ($this->getMenuTotalPrice($menu) > $budget) {
-            // NB max et min retournent la valeur de l'élément trouvé, et non l'index
-            // il faut donc chercher ensuite avec array_search pour avoir l'id de la recette
 
-            // get id of most expensive recipe from $menu
-            $max = max(array_column($menu, 'price'));
-
-            $maxId = array_keys(array_filter(
-                $menu, 
-                function ($item) use ($max) {
-                    return $item['price'] === $max;
-                }
-            ))[0]; 
-
-            $maxType = $menu[$maxId]['type'];
-
-            // s'assurer que l'item ajouté sera du même type que l'item enlevé
-            $leftFilterdByType = array_filter(
-                $left,
-                function ($item) use ($maxType) {
-                    return $item['type'] === $maxType;
-                }
-            );
-
-            if (empty($leftFilterdByType)) {
+            $temp = array_column($left, 'price');
+            if (empty($temp)) {
                 return false;
-            }
+            } 
 
-            $min = min(array_column($leftFilterdByType, 'price'));
+            $min = min(array_column($left, 'price'));
 
             $minId = array_keys(array_filter(
-                $leftFilterdByType,
+                $left,
                 function ($item) use ($min) {
                     return $item['price'] === $min;
                 }
             ))[0];
 
-            // enlever le plus chere du menu
+            $minType = $left[$minId]['type'];
+
+            // s'assurer que l'item enlevé sera du même type que l'item ajouté
+            $menuByType = array_filter(
+                $menu,
+                function ($item) use ($minType) {
+                    return $item['type'] === $minType;
+                }
+            );
+
+            // get id of most expensive recipe from $menu
+            $max = max(array_column($menuByType, 'price'));
+
+            $maxId = array_keys(array_filter(
+                $menuByType, 
+                function ($item) use ($max) {
+                    return $item['price'] === $max;
+                }
+            ))[0]; 
+
+            // enlever le plus cher du menu
             unset($menu[$maxId]);
             // ajouter le moins cher au menu
             $menu[$minId] = $left[$minId];
