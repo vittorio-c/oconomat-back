@@ -3,9 +3,11 @@
 namespace App\Serializer\Normalizer;
 
 use App\Entity\Menu;
+use App\Entity\Recipe;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * Menu normalizer
@@ -13,10 +15,12 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 class MenuNormalizer implements NormalizerInterface
 {
     private $router;
+    private $em;
 
-    public function __construct(UrlGeneratorInterface $router)
+    public function __construct(UrlGeneratorInterface $router, EntityManagerInterface $em)
     {
         $this->router = $router;
+        $this->em = $em;
     }
 
     /**
@@ -29,14 +33,23 @@ class MenuNormalizer implements NormalizerInterface
         $recipes = $object->getRecipes();
         $createdAt = $object->getCreatedAt()->format('Y-m-d');
         $updatedAt = $object->getUpdatedAt() ? $object->getUpdatedAt()->format('Y-m-d') : null;
+        $recipeRepo = $this->em->getRepository(Recipe::class);
 
         $recipesArray = [];
         foreach ($recipes as $recipe) {
             $id = $recipe->getId();
             $url = $this->getUrl('recipe_find', ['recipe' => $id], UrlGeneratorInterface::ABSOLUTE_URL);
+            $type = $recipe->getType();
+            $price = round($recipeRepo->getRecipieTotalPrice($id)[0]['totalPrice'], 2);
+            $image = $recipe->getImage();
+            $title = $recipe->getTitle();
             $recipesArray[] = [
                 'id' => $id,
-                'url' => $url
+                'title' => $title,
+                'url' => $url,
+                'type' => $type,
+                'price' => $price,
+                'image' => $image
             ];
         }
 

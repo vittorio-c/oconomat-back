@@ -15,15 +15,15 @@ class NelmioAliceFixtures extends Fixture
         // On est obligé d'ajouter cette ligne (et son use) pour avoir des résultats en français :
         $faker = Factory::create('fr_FR');
         $loader = new NativeLoader($faker);
-        
+
         // Importe le fichier de fixtures et récupère les entités générés
         $entities = $loader->loadFile(__DIR__.'/fixtures.yaml')->getObjects();
-        
+
         // Persiste chacun des objets à enregistrer en BDD
         foreach ($entities as $entity) {
             $manager->persist($entity);
         };
-        
+
         // Flush pour exécuter les requêtes SQL
         $manager->flush();
         /*
@@ -32,6 +32,6 @@ class NelmioAliceFixtures extends Fixture
         Le code ici, reste nécessaire pour DoctrineFixturesBundle
         Lorsqu'on appel ma comamnde doctrine:fixtures:load (d:f:l), on lance la méthode load() d'ici
         Toutes les modificiations et les précisions se passeront dans l'autre fichier
-        */
+         */
     }
 }
