@@ -22,29 +22,30 @@ class MenuGenerator
      */
     public function generateMenu($budget, $quantity)
     {
+        $recipeRepo = $this->em->getRepository(Recipe::class);
         // prix objectif par recette
         $targetPrice = round($budget / $quantity);
 
-        $lunchs = $this->em->getRepository(Recipe::class)
-                       ->findBy(['type' => 'dejeuner']);
-        $dinners = $this->em->getRepository(Recipe::class)
-                        ->findBy(['type' => 'diner']);
+        $breakfast = $recipeRepo->findBy(['type' => 'petit déjeuner']);
+        $lunchs = $recipeRepo->findBy(['type' => 'déjeuner']);
+        $dinners = $recipeRepo->findBy(['type' => 'dîner']);
 
         // on écrase les tableaux précédents avec des tableaux 
         // contenant uniquement des recettes correspondant plus ou moins au prix objectif
         $lunchs = $this->getTargetedRecipesWithPrice($lunchs, $targetPrice);
         $dinners = $this->getTargetedRecipesWithPrice($dinners, $targetPrice);
+        $breakfast = $this->getTargetedRecipesWithPrice($breakfast, $targetPrice);
 
         // construction du menu
-        $menus = $this->buildMenu($lunchs, $dinners, $quantity);
+        $menus = $this->buildMenu($breakfast, $lunchs, $dinners, $quantity);
 
+        // si le budget était trop haut
         if ($menus === false) {
             return false;
         }
 
         // calcul du prix total du menu
         $total = $this->getMenuTotalPrice($menus['menu']);
-        dump(min(array_column($menus['menuLeft'], 'price')));
 
         // ajustements pour être sur de ne pas dépasser le prix
         $menu = $this->adjustMenu($menus['menu'], $menus['menuLeft'], $budget);
@@ -65,6 +66,7 @@ class MenuGenerator
         while ($this->getMenuTotalPrice($menu) > $budget) {
 
             $temp = array_column($left, 'price');
+
             if (empty($temp)) {
                 return false;
             } 
@@ -138,12 +140,12 @@ class MenuGenerator
         // tableau avec id de la  recette et prix total
         $recipesArray = [];
         foreach ($recipes as $recipe) {
-            $price = $repository->getRecipieTotalPrice($recipe->getId()); 
+            $price = round($repository->getRecipieTotalPrice($recipe->getId())[0]['totalPrice'], 2); 
             $diff = $price[0]['totalPrice'] - $targetPrice;
 
             if ($diff <= 5 && $diff >= -5) {
                 $recipesArray[$recipe->getId()] = [
-                    'price' => intval($price[0]['totalPrice']),
+                    'price' => $price,
                     'type' => $recipe->getType()
                 ];
             }
@@ -160,23 +162,42 @@ class MenuGenerator
      * @return array [$menus, $menusLeft]
      *
      */
-    public function buildMenu($lunchs, $dinners, $quantity)
+    public function buildMenu($breakfast, $lunchs, $dinners, $quantity)
     {
         // tableau menu avec les 21 recettes sélectionnées
         $menu = [];
         // tableau avec les recettes non sélectionnées
         $menuLeft = [];
-        $allRecipes = $lunchs + $dinners;
-        $quantity = round($quantity / 2);
+        $allRecipes = $breakfast + $lunchs + $dinners;
+        // ici une moyenne ??????
+        $quantity = $quantity / 3;
 
-        if (count($lunchs) < $quantity || count($dinners) < $quantity) {
+        // gestion d'un budget trop grand :
+        // si le nombre de possibilités est plus faible que la quantité demandée
+        // rappel : le nombre de possibilités est ici déjà filtré par le prix objectif
+        // autrement dit : si trop peu ou pas de repas correspondent au prix objectif
+        // alors exit
+        if (count($lunchs) < $quantity || count($dinners) < $quantity || count($breakfast) < $quantity) {
             return false;
         }
 
         // tableau numérique temporaire ([numKey => recipeId]) pour pouvoir tirer au hasard
         // une recette sur la base du nombre généré plus bas
+        $arrayBreakfast = array_keys($breakfast);
         $arrayLunchs = array_keys($lunchs);
         $arrayDinners = array_keys($dinners);
+
+        // 7 breakfast
+        for ($i = 0; $i < $quantity; $i++) {
+            $n = rand(0, count($breakfast) - 1);
+            $key = $arrayBreakfast[$n];
+            $value = $breakfast[$key];
+            if (!array_key_exists($key, $menu)) {
+                $menu[$key] = $value;
+            } else {
+                $i--;
+            }
+        }
 
         // 7 lunchs
         for ($i = 0; $i < $quantity; $i++) {

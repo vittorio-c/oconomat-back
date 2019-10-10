@@ -19,20 +19,22 @@ Ex de réponse :
   },
   "recipes": [
     {
-      "id": 87,
-      "url": "http://vmlocal:8001/api/recipe/87"
+      "id": 84,
+      "url": "http://vmlocal:8001/api/recipe/84",
+      "type": "diner",
+      "price": 5
     },
     {
-      "id": 92,
-      "url": "http://vmlocal:8001/api/recipe/92"
+      "id": 90,
+      "url": "http://vmlocal:8001/api/recipe/90",
+      "type": "diner",
+      "price": 6
     },
     {
-      "id": 106,
-      "url": "http://vmlocal:8001/api/recipe/106"
-    },
-    {
-      "id": 109,
-      "url": "http://vmlocal:8001/api/recipe/109"
+      "id": 94,
+      "url": "http://vmlocal:8001/api/recipe/94",
+      "type": "diner",
+      "price": 5
     },
     {
        "etc": "etc"        
@@ -280,6 +282,7 @@ Ex de réponse :
   "metadata": {
     "status": 200,
     "message": "Menu généré avec succès.",
+    "budget": 100,
     "coutMenu": 89
   },
   "idMenu": 25,
@@ -291,20 +294,22 @@ Ex de réponse :
   },
   "recipes": [
     {
-      "id": 87,
-      "url": "http://vmlocal:8001/api/recipe/87"
+      "id": 141,
+      "url": "http://vmlocal:8001/api/recipe/141",
+      "type": "dejeuner",
+      "price": 9
     },
     {
-      "id": 92,
-      "url": "http://vmlocal:8001/api/recipe/92"
+      "id": 114,
+      "url": "http://vmlocal:8001/api/recipe/114",
+      "type": "dejeuner",
+      "price": 4
     },
     {
-      "id": 106,
-      "url": "http://vmlocal:8001/api/recipe/106"
-    },
-    {
-      "id": 109,
-      "url": "http://vmlocal:8001/api/recipe/109"
+      "id": 115,
+      "url": "http://vmlocal:8001/api/recipe/115",
+      "type": "dejeuner",
+      "price": 0
     },
     {
        "etc": "etc"        

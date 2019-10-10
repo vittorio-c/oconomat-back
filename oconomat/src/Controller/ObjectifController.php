@@ -53,7 +53,7 @@ class ObjectifController extends AbstractController
         if ($form->isValid()) {
             $user = $this->getUser();
             $budget = $data['budget'];
-            $quantity = 20;
+            $quantity = 21;
 
             //$menuGenerator = new MenuGenerator();
             $menu = $menuGenerator->generateMenu($budget, $quantity);
@@ -67,7 +67,7 @@ class ObjectifController extends AbstractController
             }
 
             // total
-            $total = $menuGenerator->getMenuTotalPrice($menu);
+            $total = round($menuGenerator->getMenuTotalPrice($menu), 2);
 
             // passage en objets et enregistrements bdd
             $menuObject = new Menu();

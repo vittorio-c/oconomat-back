@@ -39,12 +39,12 @@ class MenuNormalizer implements NormalizerInterface
             $id = $recipe->getId();
             $url = $this->getUrl('recipe_find', ['recipe' => $id], UrlGeneratorInterface::ABSOLUTE_URL);
             $type = $recipe->getType();
-            $price = $this->em->getRepository(Recipe::class)->getRecipieTotalPrice($id);
+            $price = round($this->em->getRepository(Recipe::class)->getRecipieTotalPrice($id)[0]['totalPrice'], 2);
             $recipesArray[] = [
                 'id' => $id,
                 'url' => $url,
                 'type' => $type,
-                'price' => intval($price[0]['totalPrice'])
+                'price' => $price
             ];
         }
 
