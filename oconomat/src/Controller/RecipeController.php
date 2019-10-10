@@ -39,7 +39,7 @@ class RecipeController extends AbstractController
         // normalize with the data we want
         $data = $serializer->normalize($recipe, null, [
             'attributes' => [
-                'id', 'title', 'slug', 'type', 'createdAt', 'updatedAt',
+                'id', 'title', 'slug', 'type', 'createdAt', 'image', 'updatedAt',
                 'recipeSteps' => ['stepNumber', 'content'],
                 'ingredients' => ['quantity', 'aliment' => ['name', 'unit']]
             ]
