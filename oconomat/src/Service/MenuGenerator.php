@@ -22,21 +22,27 @@ class MenuGenerator
      */
     public function generateMenu($budget, $quantity)
     {
+        $recipeRepo = $this->em->getRepository(Recipe::class);
         // prix objectif par recette
         $targetPrice = round($budget / $quantity);
 
-        $lunchs = $this->em->getRepository(Recipe::class)
-                       ->findBy(['type' => 'dejeuner']);
-        $dinners = $this->em->getRepository(Recipe::class)
-                        ->findBy(['type' => 'diner']);
+        $breakfast = $recipeRepo->findBy(['type' => 'petit déjeuner']);
+        $lunchs = $recipeRepo->findBy(['type' => 'déjeuner']);
+        $dinners = $recipeRepo->findBy(['type' => 'dîner']);
 
         // on écrase les tableaux précédents avec des tableaux 
         // contenant uniquement des recettes correspondant plus ou moins au prix objectif
-        $lunchs = $this->getRecipesPrice($lunchs, $targetPrice);
-        $dinners = $this->getRecipesPrice($dinners, $targetPrice);
+        $lunchs = $this->getTargetedRecipesWithPrice($lunchs, $targetPrice);
+        $dinners = $this->getTargetedRecipesWithPrice($dinners, $targetPrice);
+        $breakfast = $this->getTargetedRecipesWithPrice($breakfast, $targetPrice);
 
         // construction du menu
-        $menus = $this->buildMenu($lunchs, $dinners, $quantity);
+        $menus = $this->buildMenu($breakfast, $lunchs, $dinners, $quantity);
+
+        // si le budget était trop haut
+        if ($menus === false) {
+            return false;
+        }
 
         // calcul du prix total du menu
         $total = $this->getMenuTotalPrice($menus['menu']);
@@ -58,39 +64,43 @@ class MenuGenerator
     public function adjustMenu($menu, $left, $budget)
     {
         while ($this->getMenuTotalPrice($menu) > $budget) {
-            // NB max et min retournent la valeur de l'élément trouvé, et non l'index
-            // il faut donc chercher ensuite avec array_search pour avoir l'id de la recette
 
-            // get id of most expensive recipe from $menu
-            $max = max(array_column($menu, 'price'));
+            $temp = array_column($left, 'price');
 
-            $maxId = array_keys(array_filter(
-                $menu, 
-                function ($item) use ($max) {
-                    return $item['price'] === $max;
-                }
-            ))[0]; 
+            if (empty($temp)) {
+                return false;
+            } 
 
-            $maxType = $menu[$maxId]['type'];
-
-            // s'assurer que l'item ajouté sera du même type que l'item enlevé
-            $leftFilterdByType = array_filter(
-                $left,
-                function ($item) use ($maxType) {
-                    return $item['type'] === $maxType;
-                }
-            );
-
-            $min = min(array_column($leftFilterdByType, 'price'));
+            $min = min(array_column($left, 'price'));
 
             $minId = array_keys(array_filter(
-                $leftFilterdByType,
+                $left,
                 function ($item) use ($min) {
                     return $item['price'] === $min;
                 }
             ))[0];
 
-            // enlever le plus chere du menu
+            $minType = $left[$minId]['type'];
+
+            // s'assurer que l'item enlevé sera du même type que l'item ajouté
+            $menuByType = array_filter(
+                $menu,
+                function ($item) use ($minType) {
+                    return $item['type'] === $minType;
+                }
+            );
+
+            // get id of most expensive recipe from $menu
+            $max = max(array_column($menuByType, 'price'));
+
+            $maxId = array_keys(array_filter(
+                $menuByType, 
+                function ($item) use ($max) {
+                    return $item['price'] === $max;
+                }
+            ))[0]; 
+
+            // enlever le plus cher du menu
             unset($menu[$maxId]);
             // ajouter le moins cher au menu
             $menu[$minId] = $left[$minId];
@@ -123,19 +133,19 @@ class MenuGenerator
      * @return array $recipesArray
      *
      */
-    public function getRecipesPrice(array $recipes, $targetPrice)
+    public function getTargetedRecipesWithPrice(array $recipes, $targetPrice)
     {
         $repository = $this->em->getRepository(Recipe::class);
 
         // tableau avec id de la  recette et prix total
         $recipesArray = [];
         foreach ($recipes as $recipe) {
-            $price = $repository->getRecipieTotalPrice($recipe->getId()); 
+            $price = round($repository->getRecipieTotalPrice($recipe->getId())[0]['totalPrice'], 2); 
             $diff = $price[0]['totalPrice'] - $targetPrice;
 
             if ($diff <= 5 && $diff >= -5) {
                 $recipesArray[$recipe->getId()] = [
-                    'price' => intval($price[0]['totalPrice']),
+                    'price' => $price,
                     'type' => $recipe->getType()
                 ];
             }
@@ -146,37 +156,66 @@ class MenuGenerator
     /**
      * Build menu 
      *
+     * TODO lever une exception plutôt que le return false
+     * une fois que la gestion des exception sera en place
+     *
      * @return array [$menus, $menusLeft]
      *
      */
-    public function buildMenu($lunchs, $dinners, $quantity)
+    public function buildMenu($breakfast, $lunchs, $dinners, $quantity)
     {
         // tableau menu avec les 21 recettes sélectionnées
         $menu = [];
         // tableau avec les recettes non sélectionnées
         $menuLeft = [];
-        $allRecipes = $lunchs + $dinners;
+        $allRecipes = $breakfast + $lunchs + $dinners;
+        // ici une moyenne ??????
+        $quantity = $quantity / 3;
+
+        // gestion d'un budget trop grand :
+        // si le nombre de possibilités est plus faible que la quantité demandée
+        // rappel : le nombre de possibilités est ici déjà filtré par le prix objectif
+        // autrement dit : si trop peu ou pas de repas correspondent au prix objectif
+        // alors exit
+        if (count($lunchs) < $quantity || count($dinners) < $quantity || count($breakfast) < $quantity) {
+            return false;
+        }
 
         // tableau numérique temporaire ([numKey => recipeId]) pour pouvoir tirer au hasard
         // une recette sur la base du nombre généré plus bas
+        $arrayBreakfast = array_keys($breakfast);
         $arrayLunchs = array_keys($lunchs);
         $arrayDinners = array_keys($dinners);
 
+        // 7 breakfast
+        for ($i = 0; $i < $quantity; $i++) {
+            $n = rand(0, count($breakfast) - 1);
+            $key = $arrayBreakfast[$n];
+            $value = $breakfast[$key];
+            if (!array_key_exists($key, $menu)) {
+                $menu[$key] = $value;
+            } else {
+                $i--;
+            }
+        }
+
         // 7 lunchs
-        for ($i = 0; $i < $quantity / 2; $i++) {
+        for ($i = 0; $i < $quantity; $i++) {
             $n = rand(0, count($lunchs) - 1);
             $key = $arrayLunchs[$n];
             $value = $lunchs[$key];
             if (!array_key_exists($key, $menu)) {
                 $menu[$key] = $value;
             } else {
+                // quant dans $menu il a déjà ajouté toutes les valeurs 
+                // présentes dans $arrayLunchs
+                // sortir de la boucle et lever une erreure
                 $i--;
-                continue;
             }
         }
 
         // 7 dinners
-        for ($i = 0; $i < $quantity / 2; $i++) {
+        for ($i = 0; $i < $quantity; $i++) {
             $n = rand(0, count($dinners) - 1);
             $key = $arrayDinners[$n];
             $value = $dinners[$key];
@@ -184,7 +223,6 @@ class MenuGenerator
                 $menu[$key] = $value;
             } else {
                 $i--;
-                continue;
             }
         }
 
@@ -193,6 +231,10 @@ class MenuGenerator
             if (!array_key_exists($key, $menu)) {
                 $menuLeft[$key] = $value;
             }
+        }
+
+        if (count($menuLeft) < $quantity) {
+            return false;
         }
 
         return ['menu' => $menu, 'menuLeft' => $menuLeft];

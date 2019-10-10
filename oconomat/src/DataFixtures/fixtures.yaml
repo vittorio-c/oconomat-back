@@ -1,9 +1,11 @@
 parameters:
   encodedPassword: $argon2id$v=19$m=65536,t=4,p=1$wsupbX6adiipsQZqBhGVUw$+n6Jkpa/JBR22q+gw00Iv3O3MZ4w7TCNEEvivVU1gj8
   roles: ["ROLE_USER"]
-  type1: petit-dejeuner
-  type2: dejeuner
-  type3: diner
+  type1: 'petit déjeuner'
+  type2: 'déjeuner'
+  type3: 'dîner'
+  unit1: kg
+  unit2: l
 
 App\Entity\User:
     user_{1..23}:
@@ -28,8 +30,8 @@ App\Entity\Label:
 App\Entity\Food:
     food_{1..250}:
         name: '<word()>'
-        price: '<numberBetween(0,3)>'
-        unit: 'kg'
+        price: '<randomFloat(2, 0.12, 2)>'
+        unit: '50%? <{unit1}> : <{unit2}>'
         type: '<word()>'
         labels: '2x @label_*'
 
@@ -48,7 +50,7 @@ App\Entity\RecipeStep:
         
 App\Entity\Ingredient:
     ingredient_{1..350}:
-        quantity: '<numberBetween(1,3)>'
+        quantity: '<randomFloat(2, 0.10, 3)>'
         createdAt: '<date_create()>' 
         recipe: '@recipe_*'
         aliment: '@food_*'

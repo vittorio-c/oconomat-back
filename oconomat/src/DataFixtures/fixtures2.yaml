@@ -1,0 +1,39 @@
+parameters:
+  type1: 'petit déjeuner'
+  type2: 'déjeuner'
+  type3: 'dîner'
+  unit1: kg
+  unit2: l
+
+App\Entity\Label:
+    label_{1..10}:
+        name: '<word()>'
+        createdAt: '<date_create()>'
+
+App\Entity\Food:
+    food_{1..100}:
+        name: '<word()>'
+        price: '<randomFloat(2, 0.12, 2)>'
+        unit: '50%? <{unit1}> : <{unit2}>'
+        type: '<word()>'
+        labels: '2x @label_*'
+
+App\Entity\Recipe:
+    recipe_{1..45}:
+        title: '<word()>'
+        type: '<{type1}>'
+        createdAt: '<date_create()>'
+
+App\Entity\RecipeStep:
+    recipeStep_{1..100}:
+        stepNumber: '<numberBetween(1,8)>'
+        content: '<text()>'
+        createdAt: '<date_create()>'
+        recipe: '@recipe_*'
+
+App\Entity\Ingredient:
+    ingredient_{1..100}:
+        quantity: '<randomFloat(2, 0.10, 3)>'
+        createdAt: '<date_create()>'
+        recipe: '@recipe_*'
+        aliment: '@food_*'

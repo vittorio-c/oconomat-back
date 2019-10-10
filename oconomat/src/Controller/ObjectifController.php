@@ -53,13 +53,21 @@ class ObjectifController extends AbstractController
         if ($form->isValid()) {
             $user = $this->getUser();
             $budget = $data['budget'];
-            $quantity = 14;
+            $quantity = 21;
 
             //$menuGenerator = new MenuGenerator();
             $menu = $menuGenerator->generateMenu($budget, $quantity);
 
+            if ($menu === false) {
+                $data = json_encode([
+                    'status' => '404',
+                    'message' => 'Budget trop haut ou trop bas, veuillez recommencer.'
+                ]);
+                return new Response($data, 404, ['Content-Type' => 'application/json']);
+            }
+
             // total
-            $total = $menuGenerator->getMenuTotalPrice($menu);
+            $total = round($menuGenerator->getMenuTotalPrice($menu), 2);
 
             // passage en objets et enregistrements bdd
             $menuObject = new Menu();
@@ -88,7 +96,8 @@ class ObjectifController extends AbstractController
             $context['metadata'] = [
                 'status' => 200,
                 'message' => 'Menu généré avec succès.',
-                'coutMenu' => $total
+                'budget' => $budget,
+                'totalPrice' => $total
             ];
 
             $data = $serializer->serialize($menuObject, 'json', $context);
