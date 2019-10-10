@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Recipe;
+use Doctrine\DBAL\Driver\Connection;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 
@@ -32,32 +33,47 @@ class RecipeRepository extends ServiceEntityRepository
         return $menu;
     }
 
-    // /**
-    //  * @return Recipe[] Returns an array of Recipe objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function getAllRecipiesAveragePrice()
     {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('r.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-     */
+        $em = $this->getEntityManager();
+        $RAW_SQL = '
+            SELECT 
+                ROUND(AVG(totalPrice), 2) average
+            FROM
+                (SELECT 
+                        SUM((food.price*ingredient.quantity)) as totalPrice,
+                        recipe.id
+                FROM recipe
+                INNER JOIN ingredient ON ingredient.recipe_id = recipe.id
+                INNER JOIN food ON food.id = ingredient.aliment_id
+                GROUP BY recipe.id) 
+            prices;
+            ';
+        $statement = $em->getConnection()->prepare($RAW_SQL);
+        $statement->execute();
 
-    /*
-    public function findOneBySomeField($value): ?Recipe
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $statement->fetchAll();
     }
-     */
+
+    public function getTotal()
+    {
+        $em = $this->getEntityManager();
+        $RAW_SQL = '
+            SELECT 
+                ROUND(SUM(totalPrice), 2) total
+            FROM
+                (SELECT 
+                        SUM((food.price*ingredient.quantity)) as totalPrice,
+                        recipe.id
+                FROM recipe
+                INNER JOIN ingredient ON ingredient.recipe_id = recipe.id
+                INNER JOIN food ON food.id = ingredient.aliment_id
+                GROUP BY recipe.id) 
+            prices;
+            ';
+        $statement = $em->getConnection()->prepare($RAW_SQL);
+        $statement->execute();
+
+        return $statement->fetchAll();
+    }
 }

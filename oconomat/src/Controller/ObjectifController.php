@@ -45,17 +45,16 @@ class ObjectifController extends AbstractController
         MenuGenerator $menuGenerator
     )
     {
+        $doctrine = $this->getDoctrine();
         $form = $this->createForm(ObjectifType::class);
         $data = json_decode($request->getContent(), true);
         $form->submit($data);
-        $doctrine = $this->getDoctrine();
 
         if ($form->isValid()) {
             $user = $this->getUser();
             $budget = $data['budget'];
             $quantity = 21;
 
-            //$menuGenerator = new MenuGenerator();
             $menu = $menuGenerator->generateMenu($budget, $quantity);
 
             if ($menu === false) {
