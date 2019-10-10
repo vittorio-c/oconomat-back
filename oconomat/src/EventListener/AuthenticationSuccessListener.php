@@ -12,24 +12,23 @@ class AuthenticationSuccessListener
      */
     public function onAuthenticationSuccessResponse(AuthenticationSuccessEvent $event)
     {
-        $data = $event->getData();
         $user = $event->getUser();
 
 
         if (!$user instanceof UserInterface) {
 
-            $test =  $user->getObjectifs();
+            $budgetList =  $user->getObjectifs();
 
-            $property = null;
+            $budget = null;
 
-            if (!$test->isEmpty())
+            if (!$budgetList->isEmpty())
             {
-                $property =  $test->last()->getBudget();
+                $budget =  $budgetList->last()->getBudget();
             }
 
             $event->setData([
                 'id' => $user->getId(),
-                'budget' => $property,
+                'budget' => $budget,
                 'firstname' => $user->getFirstname(),
                 'lastname' => $user->getLastname(),
                 'payload' => $event->getData(),
@@ -38,11 +37,5 @@ class AuthenticationSuccessListener
             return;
         }
 
-
-        //$event->setData($data);
-
-
-
-        //return $event;
     }
 }
