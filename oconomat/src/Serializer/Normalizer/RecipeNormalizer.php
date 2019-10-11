@@ -36,8 +36,7 @@ class RecipeNormalizer implements NormalizerInterface
         $ingredients = [];
 
         foreach ($object->getIngredients() as $ingredient) {
-            $aliments = [];
-            $aliments[] = [
+            $aliments = [
                 'name' => $ingredient->getAliment()->getName(), 
                 'unit' => $ingredient->getAliment()->getUnit()
             ];
