@@ -124,7 +124,8 @@ class SecurityController extends AbstractController
                             'emails/newpassword.html.twig',
                             [
                                 'password' => $newPasswordGenerated,
-                                'image' => $image
+                                'image' => $image,
+                                'name' => $currentUser->getFirstname()
                             ]
                         ),
                         'text/html'
