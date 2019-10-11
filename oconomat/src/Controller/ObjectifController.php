@@ -54,7 +54,7 @@ class ObjectifController extends AbstractController
         if ($form->isValid()) {
             $user = $this->getUser();
             $budget = $data['budget'];
-            $userQuantity = $data['userQuantity'];
+            $userQuantity = $data['userQuantity'] ?? 1;
 
             $menu = $menuGenerator->generateMenu($budget, $userQuantity);
 
