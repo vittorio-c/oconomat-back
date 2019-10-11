@@ -33,8 +33,6 @@ class MenuController extends AbstractController
 
     /**
      * Find a menu (READ)
-     * TODO handle exception on this method
-     * TODO limit access to menu's owner
      *
      * @Route(
      *      "/{menu}",
@@ -114,18 +112,25 @@ class MenuController extends AbstractController
                      ->getRepository(Menu::class)
                      ->getShoppinigListFromMenuId($menu->getId());
 
-        // merge duplicate items
+        // merge duplicate items and get shopping list total price
         $newData = [];
+        $shoppingTotalPrice = 0;
         foreach ($data as $key => $value) {
+            $quantity = round(floatval($value['quantity']), 2);
+            $totalPrice = round(floatval($value['totalPrice']), 2);
+            $value['quantity'] = $quantity;
+            $value['totalPrice'] = $totalPrice;
+
             $arrayTemp = array_column($newData, 'foodId');
+
             if (!in_array($value['foodId'], $arrayTemp)) {
                 $newData[] = $value;
             } else {
                 $id = array_search($value['foodId'], $arrayTemp);
-                dump($id);
-                $newData[$id]['quantity'] += $value['quantity'];
-                $newData[$id]['totalPrice'] += $value['totalPrice'];
+                $newData[$id]['quantity'] += $quantity;
+                $newData[$id]['totalPrice'] += $totalPrice;
             }
+            $shoppingTotalPrice += $totalPrice;
         }
         $data = $newData;
 
@@ -133,7 +138,9 @@ class MenuController extends AbstractController
         $metadata = [
             'menuId' => $menu->getId(),
             'createdAt' => $menu->getCreatedAt(),
-            'userId' => $menu->getUser()->getId()
+            'userId' => $menu->getUser()->getId(),
+            'userQuantity' => $menu->getObjectif()->getUserQuantity(),
+            'shoppingTotalPrice' => $shoppingTotalPrice
         ];
 
         // prepare php array

@@ -23,6 +23,7 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
+use Doctrine\ORM\EntityManagerInterface;
 
 
 /**
@@ -53,9 +54,9 @@ class ObjectifController extends AbstractController
         if ($form->isValid()) {
             $user = $this->getUser();
             $budget = $data['budget'];
-            $quantity = 21;
+            $userQuantity = $data['userQuantity'];
 
-            $menu = $menuGenerator->generateMenu($budget, $quantity);
+            $menu = $menuGenerator->generateMenu($budget, $userQuantity);
 
             if ($menu === false) {
                 $data = json_encode([
@@ -81,6 +82,9 @@ class ObjectifController extends AbstractController
 
             $objectives = $form->getData();
             $objectives->setUser($user);
+            $objectives->setUserQuantity($userQuantity);
+
+            $menuObject->setObjectif($objectives);
 
             $em = $doctrine->getManager();
             $em->persist($objectives);
@@ -96,7 +100,8 @@ class ObjectifController extends AbstractController
                 'status' => 200,
                 'message' => 'Menu généré avec succès.',
                 'budget' => $budget,
-                'totalPrice' => $total
+                'totalPrice' => $total,
+                'userQuantity' => $userQuantity
             ];
 
             $data = $serializer->serialize($menuObject, 'json', $context);

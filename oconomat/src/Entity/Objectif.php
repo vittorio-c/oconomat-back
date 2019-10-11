@@ -37,6 +37,16 @@ class Objectif
      */
     private $updatedAt;
 
+    /**
+     * @ORM\Column(type="smallint", nullable=true)
+     */
+    private $userQuantity;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Menu", mappedBy="objectif", cascade={"persist", "remove"})
+     */
+    private $menu;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
@@ -96,6 +106,36 @@ class Objectif
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getUserQuantity(): ?int
+    {
+        return $this->userQuantity;
+    }
+
+    public function setUserQuantity(?int $userQuantity): self
+    {
+        $this->userQuantity = $userQuantity;
+
+        return $this;
+    }
+
+    public function getMenu(): ?Menu
+    {
+        return $this->menu;
+    }
+
+    public function setMenu(?Menu $menu): self
+    {
+        $this->menu = $menu;
+
+        // set (or unset) the owning side of the relation if necessary
+        $newObjectif = $menu === null ? null : $this;
+        if ($newObjectif !== $menu->getObjectif()) {
+            $menu->setObjectif($newObjectif);
+        }
 
         return $this;
     }

@@ -7,11 +7,15 @@ use App\Entity\Recipe;
 
 class MenuGenerator
 {
+    public const QUANTITY = 21;
     private $em;
+    private $users;
+    private $budget;
+    private $targetPrice;
 
     public function __construct(EntityManagerInterface $em)
     {
-        $this->em = $em; 
+        $this->em = $em;
     }
 
     /**
@@ -20,17 +24,19 @@ class MenuGenerator
      * @return array $menu
      *
      */
-    public function generateMenu($budget, $quantity)
+    public function generateMenu($budget, $users)
     {
+        $this->budget = $budget;
+        $this->users = $users;
         $recipeRepo = $this->em->getRepository(Recipe::class);
 
         // prix objectif par recette
-        $targetPrice = round($budget / $quantity, 2);
-        $averagePriceFromDB = floatval($recipeRepo->getAllRecipiesAveragePrice()[0]['average']);
-        $total = floatval($recipeRepo->getTotal()[0]['total']);
-        dump('total ' . $total, 'av ' . $averagePriceFromDB, 'target ' . $targetPrice);
+        $this->targetPrice = round($this->budget / self::QUANTITY, 2);
+        $averagePriceFromDB = floatval($recipeRepo->getAllRecipiesAveragePrice()[0]['average']) * $this->users;
 
-        $variation = ($targetPrice - $averagePriceFromDB) / $averagePriceFromDB * 100;
+        $total = floatval($recipeRepo->getTotal()[0]['total']);
+
+        $variation = ($this->targetPrice - $averagePriceFromDB) / $averagePriceFromDB * 100;
 
         // si le prix cible dépasse de 50 % à la baisse ou à la hausse 
         // la moyenne des prix en database
@@ -44,22 +50,18 @@ class MenuGenerator
 
         // on écrase les tableaux précédents avec des tableaux 
         // contenant uniquement des recettes correspondant plus ou moins au prix objectif
-        $lunchs = $this->getTargetedRecipesWithPrice($lunchs, $targetPrice);
-        $dinners = $this->getTargetedRecipesWithPrice($dinners, $targetPrice);
-        $breakfast = $this->getTargetedRecipesWithPrice($breakfast, $targetPrice);
-        //dump($breakfast, $lunchs, $dinners);
+        $lunchs = $this->getTargetedRecipesWithPrice($lunchs);
+        $dinners = $this->getTargetedRecipesWithPrice($dinners);
+        $breakfast = $this->getTargetedRecipesWithPrice($breakfast);
 
         // construction du menu
-        $menus = $this->buildMenu($breakfast, $lunchs, $dinners, $quantity);
+        $menus = $this->buildMenu($breakfast, $lunchs, $dinners);
 
         // calcul du prix total du menu
         $total = $this->getMenuTotalPrice($menus['menu']);
 
         // ajustements pour être sur de ne pas dépasser le prix
-        $menu = $this->adjustMenu($menus['menu'], $menus['menuLeft'], $budget);
-        //dump($menu);
-        //dump($this->getMenuTotalPrice($menu));
-        //exit;
+        $menu = $this->adjustMenu($menus['menu'], $menus['menuLeft']);
 
         return $menu;
     }
@@ -72,17 +74,11 @@ class MenuGenerator
      * @return array $menu
      *
      */
-    public function adjustMenu($menu, $left, $budget)
+    public function adjustMenu($menu, $left)
     {
-        while ($this->getMenuTotalPrice($menu) > $budget) {
+        while ($this->getMenuTotalPrice($menu) > $this->budget) {
 
-            //dump($menu); dump($left);
             $arrayLeft = array_column($left, 'price');
-            //dump($arrayLeft); exit;
-
-            //if (empty($arrayLeft)) {
-            //return false;
-            //} 
 
             // le minimum disponible dans price
             $min = min($arrayLeft);
@@ -142,40 +138,37 @@ class MenuGenerator
      * @return array $recipesArray
      *
      */
-    public function getTargetedRecipesWithPrice(array $recipes, $targetPrice)
+    public function getTargetedRecipesWithPrice(array $recipes)
     {
         $repository = $this->em->getRepository(Recipe::class);
 
         // tableau avec id de la  recette et prix total
         $recipesArray = [];
 
-        // on varie la limit car on a des petits dejueners tres peu chers
+        // on élargit la limite pour les petits dejueners
+        // car il y en a peu pour le moment, et ils sont tres peu chers
         if ($recipes[0]->getType() == 'petit déjeuner') {
             $limit = 150;
         } else {
             $limit = 75;
         }
-        //dump($limit);
+
         foreach ($recipes as $recipe) {
-            //dump($recipe);
-            $price = round($repository->getRecipieTotalPrice($recipe->getId())[0]['totalPrice'], 2); 
-            //dump($price);
-            //$diff = $price - $targetPrice;
-            $variation = ($price - $targetPrice) / $targetPrice * 100;
+            $price = round(
+                $repository->getRecipieTotalPrice(
+                    $recipe->getId()
+                )[0]['totalPrice'], 
+                2) * $this->users; 
+            $variation = ($price - ($this->targetPrice)) / ($this->targetPrice) * 100;
 
             if ($variation > $limit || $variation < -$limit) {
-                //dump('id ' . $recipe->getId(), 'type ' . $recipe->getType(), 'price ' . $price);
-                //dump('variation ' . $variation);
-                //var_dump('trout');
             } else {
-                //dump($diff);
                 $recipesArray[$recipe->getId()] = [
                     'price' => $price,
                     'type' => $recipe->getType()
                 ];
             }
         }
-        //dump(array_column($recipesArray, 'price'));
         return $recipesArray;
     }
 
@@ -188,7 +181,7 @@ class MenuGenerator
      * @return array [$menus, $menusLeft]
      *
      */
-    public function buildMenu($breakfast, $lunchs, $dinners, $quantity)
+    public function buildMenu($breakfast, $lunchs, $dinners)
     {
         // tableau menu avec les 21 recettes sélectionnées
         $menu = [];
@@ -197,9 +190,7 @@ class MenuGenerator
 
         $allRecipes = $breakfast + $lunchs + $dinners;
 
-        //dump(array_column($allRecipes, 'price')); exit;
-        // ici une moyenne ??????
-        $quantity = $quantity / 3;
+        $quantity = self::QUANTITY / 3;
 
         // gestion d'un budget trop grand :
         // si le nombre de possibilités est plus faible que la quantité demandée
@@ -236,9 +227,6 @@ class MenuGenerator
             if (!array_key_exists($key, $menu)) {
                 $menu[$key] = $value;
             } else {
-                // quant dans $menu il a déjà ajouté toutes les valeurs 
-                // présentes dans $arrayLunchs
-                // sortir de la boucle et lever une erreure
                 $i--;
             }
         }
