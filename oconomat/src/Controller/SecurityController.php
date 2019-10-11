@@ -84,7 +84,7 @@ class SecurityController extends AbstractController
 
 
     /**
-     * @Route("/api/password/new", name="app_password_new", methods={"POST"})
+     * @Route("/api/password/new", name="app_password_forgot", methods={"POST"})
      */
     public function forgotPassword(Request $request, getRandomPassword $randomPassword, \Swift_Mailer $mailer, UserPasswordEncoderInterface $encoder)
     {
@@ -152,6 +152,46 @@ class SecurityController extends AbstractController
             
         }
         exit;
+    }
+
+    /**
+     * @Route("/api/password/change", name="app_password_new", methods={"POST"})
+     */
+    public function newPassword(Request $request, Security $security, \Swift_Mailer $mailer, UserPasswordEncoderInterface $encoder)
+    {
+
+        $user = $security->getUser();
+        $userId = $user->getId();
+        // récupérer le mot de passe actuel
+        // récupérer le nouveau mot de passe de l'utilisateur
+        $currentPassword = $request->request->get('password');
+        $newPassword = $request->request->get('newPassword');
+
+        // j'encode le mdp envoyé par l'utilisateur, pou vérifier si son hashage correspond à celui de la bdd
+        $currentPassword = $encoder->encodePassword($user, $currentPassword);
+        $user->setPassword($currentPassword);
+
+        $passwordInDatabase = $user->getPassword();
+
+        // vérifier si le mot de passe actuel correspond bien en bdd
+        if($currentPassword == $passwordInDatabase){
+            
+            // Si oui encoder le nouveau mot de passe et remplacer l'ancien par celui-ci.
+            $currentUser = $this->getDoctrine()->getRepository(User::class)->find($userId);
+
+            $newEncodedPassword = $encoder->encodePassword($currentUser, $newPassword);
+            $currentUser->setPassword($newEncodedPassword);
+
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($currentUser);
+            $em->flush();
+
+            return $this->json('Modification du mot de passe effectué');
+
+        }
+
+        return $this->json('Les mots de passe ne correspondent pas');
+
     }
 
 
