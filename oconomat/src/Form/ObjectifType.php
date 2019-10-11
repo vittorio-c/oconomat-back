@@ -13,6 +13,9 @@ class ObjectifType extends AbstractType
     {
         $builder
             ->add('budget')
+            ->add('userQuantity')
+
+        //->add('userQuantity')
         //->add('createdAt')
         //->add('updatedAt')
         //->add('user')

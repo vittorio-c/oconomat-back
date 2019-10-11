@@ -3,10 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Recipe;
+use App\Entity\Objectif;
+use App\Serializer\Normalizer\RecipeNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Encoder\JsonEncode;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
@@ -18,6 +21,13 @@ use Symfony\Component\Serializer\Serializer;
  */
 class RecipeController extends AbstractController
 {
+    private $encoder;
+
+    public function __construct()
+    {
+        $this->encoder = [new JsonEncoder(new JsonEncode(JSON_UNESCAPED_SLASHES))];
+    }
+
     /**
      * Find a recipe (READ) with every piece of information
      *
@@ -28,25 +38,19 @@ class RecipeController extends AbstractController
      *      requirements={"recipe": "\d*"}
      * )
      */
-    public function find(Recipe $recipe)
+    public function find(Recipe $recipe, RecipeNormalizer $recipeNormalizer)
     {
-        // set up the serializer
-        // TODO make it as a service
-        $encoder = [new JsonEncoder()];
-        $normalizers = array(new DateTimeNormalizer(), new ObjectNormalizer());
-        $serializer = new Serializer($normalizers, $encoder);
+        $userId = $this->getUser()->getId();
+        $em = $this->getDoctrine()->getRepository(Objectif::class);
+        $userQuantity = $em->findOneBy(
+            ['user' => $userId], 
+            ['createdAt' => 'DESC'])
+                           ->getUserQuantity();
 
-        // normalize with the data we want
-        $data = $serializer->normalize($recipe, null, [
-            'attributes' => [
-                'id', 'title', 'slug', 'type', 'createdAt', 'image', 'updatedAt',
-                'recipeSteps' => ['stepNumber', 'content'],
-                'ingredients' => ['quantity', 'aliment' => ['name', 'unit']]
-            ]
-        ]);
+        $context['metaData'] = [ 'userQuantity' => $userQuantity ] ?? null;
 
-        // encode in json
-        $data = $serializer->encode($data, 'json');
+        $serializer = new Serializer([$recipeNormalizer], $this->encoder);
+        $data = $serializer->serialize($recipe, 'json', $context);
 
         return new Response($data, 200, ['Content-Type' => 'application/json']);
     }
