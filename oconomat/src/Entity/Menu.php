@@ -39,6 +39,11 @@ class Menu
      */
     private $recipes;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Objectif", inversedBy="menu", cascade={"persist", "remove"})
+     */
+    private $objectif;
+
     public function __construct()
     {
         $this->recipes = new ArrayCollection();
@@ -110,6 +115,18 @@ class Menu
             $this->recipes->removeElement($recipe);
             $recipe->removeMenu($this);
         }
+
+        return $this;
+    }
+
+    public function getObjectif(): ?Objectif
+    {
+        return $this->objectif;
+    }
+
+    public function setObjectif(?Objectif $objectif): self
+    {
+        $this->objectif = $objectif;
 
         return $this;
     }
