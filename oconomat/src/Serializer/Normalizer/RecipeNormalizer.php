@@ -53,7 +53,8 @@ class RecipeNormalizer implements NormalizerInterface
             'title' => $object->getTitle(),
             'slug' => $object->getSlug(),
             'type' => $object->getType(),
-            'createdAt' => $object->getCreatedAt(),
+            'createdAt' => $object->getCreatedAt()->format('Y-m-d'),
+            'image' => $object->getImage(),
             'recipeSteps' => $recipeSteps,
             'ingredients' => $ingredients
         ];
