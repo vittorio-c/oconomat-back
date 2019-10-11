@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use Swift_Mailer;
 use App\Service\getRandomPassword;
+use Swift_Image;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -94,6 +95,9 @@ class SecurityController extends AbstractController
 
         foreach($emailList as $emailArray){
             foreach($emailArray as $value){
+                dump($value);
+                dump($email);
+
                 if($email == $value){
 
                     // Trouver l'id utilisateur en fonction de l'email trouvée en bdd
@@ -108,14 +112,20 @@ class SecurityController extends AbstractController
                     
                     // L'envoyer via email de l'utilisateur 
 
-                    $message = (new \Swift_Message('Votre nouveau mot de passe'))
-                    ->setFrom($email)
-                    ->setTo($email)
-                    ->setBody(
+                    
+
+                    $message = (new \Swift_Message('Oconomat - Changement de votre mot de passe effectué'))
+                    ->setFrom('oconomat.fr@mrblackway.fr')
+                    ->setTo($email);
+                    $image = $message->embed(Swift_Image::fromPath('assets/images/logo.png'));
+                    $message->setBody(
                         $this->renderView(
                             // templates/emails/registration.html.twig
                             'emails/newpassword.html.twig',
-                            ['password' => $newPasswordGenerated]
+                            [
+                                'password' => $newPasswordGenerated,
+                                'image' => $image
+                            ]
                         ),
                         'text/html'
                     )
@@ -135,11 +145,13 @@ class SecurityController extends AbstractController
                     $em->flush();
 
                    
-                    return $this->json('Email avec votre nouveau mot de passe envoyé à'.$email);
+                    return $this->json('Email avec votre nouveau mot de passe envoyé à '.$email);
+                    exit;
                 }
             }
+            
         }
-        
+        exit;
     }
 
 
