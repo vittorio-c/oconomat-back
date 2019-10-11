@@ -3,6 +3,7 @@
 namespace App\Serializer\Normalizer;
 
 use App\Entity\Menu;
+use App\Entity\Objectif;
 use App\Entity\Recipe;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Routing\Generator\UrlGenerator;
@@ -28,8 +29,16 @@ class MenuNormalizer implements NormalizerInterface
      */
     public function normalize($object, $format = null, array $context = array())
     {
-        $user = $object->getUser();
-        $userUrl = $this->getUrl('user_find', ['user' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+        $user = $object->getUser(); // menu 238 = userId 65
+        $objectif = $object->getObjectif();
+        $userQuantity = null !== $objectif ? $objectif->getUserQuantity() : 1;
+
+        $userUrl = $this->getUrl(
+            'user_find', 
+            ['user' => $user->getId()],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
+
         $recipes = $object->getRecipes();
         $createdAt = $object->getCreatedAt()->format('Y-m-d');
         $updatedAt = $object->getUpdatedAt() ? $object->getUpdatedAt()->format('Y-m-d') : null;
@@ -40,7 +49,7 @@ class MenuNormalizer implements NormalizerInterface
             $id = $recipe->getId();
             $url = $this->getUrl('recipe_find', ['recipe' => $id], UrlGeneratorInterface::ABSOLUTE_URL);
             $type = $recipe->getType();
-            $price = round($recipeRepo->getRecipieTotalPrice($id)[0]['totalPrice'], 2);
+            $price = round($recipeRepo->getRecipieTotalPrice($id)[0]['totalPrice'] * $userQuantity, 2);
             $image = $recipe->getImage();
             $title = $recipe->getTitle();
             $recipesArray[] = [
@@ -57,6 +66,7 @@ class MenuNormalizer implements NormalizerInterface
             'idMenu' => $object->getId(),
             'createdAt' => $createdAt,
             'updatedAt' => $updatedAt,
+            'userQuantity' => $userQuantity,
             'user' => [
                 'id' => $user->getId(),
                 'url' => $userUrl

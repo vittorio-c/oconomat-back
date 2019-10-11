@@ -6,35 +6,45 @@ Méthode : GET
 
 Retourne un menu accompagné de plusieurs liens vers les recettes qui le composent, ainsi que d'un lien vers son utilisateur. 
 
+> le menu n'est accessible qu'à l'utilisateur qui l'a créé  
+> pas besoin d'envoyer cette information en front, la vérification se fait côté back, en récupérant l'user connecté
+
 Ex de réponse :
 
 ```json
 {
-  "id": 25,
-  "createdAt": "2019-10-08T10:28:31+02:00",
+  "idMenu": 245,
+  "createdAt": "2019-10-11",
   "updatedAt": null,
+  "userQuantity": 6,
   "user": {
-    "id": 43,
-    "url": "http://vmlocal:8001/api/user/43"
+    "id": 65,
+    "url": "http://vmlocal:8001/api/user/65"
   },
   "recipes": [
     {
-      "id": 84,
-      "url": "http://vmlocal:8001/api/recipe/84",
-      "type": "diner",
-      "price": 5
+      "id": 171,
+      "title": "Pancakes",
+      "url": "http://vmlocal:8001/api/recipe/171",
+      "type": "petit déjeuner",
+      "price": 5.03,
+      "image": "https://assets.afcdn.com/recipe/20190423/91265_w420h344c1cx1936cy3442cxt0cyt0cxb19200cyb28800.jpg"
     },
     {
-      "id": 90,
-      "url": "http://vmlocal:8001/api/recipe/90",
-      "type": "diner",
-      "price": 6
+      "id": 174,
+      "title": "Egg Mcmuffin",
+      "url": "http://vmlocal:8001/api/recipe/174",
+      "type": "petit déjeuner",
+      "price": 11.4,
+      "image": "https://assets.afcdn.com/recipe/20160322/61548_w420h344c1cx1632cy2464.jpg"
     },
     {
-      "id": 94,
-      "url": "http://vmlocal:8001/api/recipe/94",
-      "type": "diner",
-      "price": 5
+      "id": 175,
+      "title": "Petits pain au lait maison",
+      "url": "http://vmlocal:8001/api/recipe/175",
+      "type": "petit déjeuner",
+      "price": 4.68,
+      "image": "https://assets.afcdn.com/recipe/20131207/51120_w500h500.jpg"
     },
     {
        "etc": "etc"        
@@ -53,30 +63,54 @@ Ex :
 
 ```json
 {
-  "id": 14,
-  "title": "aut",
-  "slug": null,
-  "type": "voluptates",
-  "createdAt": "2019-10-01T20:33:42+00:00",
-  "updatedAt": null,
-  "recipeSteps": [],
-  "ingredients": [
+  "metaData": {
+    "userQuantity": 1
+  },
+  "id": 189,
+  "title": "Cordon bleu",
+  "slug": "cordon-bleu",
+  "type": "déjeuner",
+  "createdAt": {
+    "date": "2019-10-08 17:00:56.000000",
+    "timezone_type": 3,
+    "timezone": "Europe/Berlin"
+  },
+  "recipeSteps": [
     {
-      "quantity": 166,
-      "aliment": {
-        "name": "quaerat",
-        "unit": "kg"
-      }
+      "stepNumber": 1,
+      "content": "Dans chaque tranche de poulet mettre deux tranches de bacon l'une à côté de l'autre et poser dessus une tranche de fromage."
     },
     {
-      "quantity": 31,
-      "aliment": {
-        "name": "autem",
-        "unit": "kg"
-      }
+      "stepNumber": 2,
+      "content": "Refermer le tout en pliant la tranche en deux."
+    },
+    {
+      "stepNumber": 3,
+      "content": "Prévoir 3 assiettes et mettre dedans la farine, l'oeuf battu et la chapelure.\r\nTremper chaque escalope d'abord dans la farine, puis dans l'oeuf et pour finir dans la chapelure."
+    },
+    {
+      "stepNumber": 4,
+      "content": "Les faire cuire quelques minutes de chaque côté dans une poêle avec un peu de beurre."
     }
-  {
-    "etc": "etc"
+  ],
+  "ingredients": [
+    {
+      "quantity": 1,
+      "aliment": [
+        {
+          "name": "tranche blanc de poulet",
+          "unit": "unité"
+        }
+      ]
+    },
+    {
+      "quantity": 2,
+      "aliment": [
+        {
+          "name": "tranche de bacon",
+          "unit": "unité"
+        }
+      ]
     }
 }
 ```
@@ -218,29 +252,30 @@ Ex de réponse 200 :
 
 ```json
 {
-  "id": 25,
-  "createdAt": "2019-10-08T10:28:31+02:00",
+  "idMenu": 246,
+  "createdAt": "2019-10-11",
   "updatedAt": null,
+  "userQuantity": 3,
   "user": {
-    "id": 43,
-    "url": "http://vmlocal:8001/api/user/43"
+    "id": 65,
+    "url": "http://vmlocal:8001/api/user/65"
   },
   "recipes": [
     {
-      "id": 87,
-      "url": "http://vmlocal:8001/api/recipe/87"
+      "id": 174,
+      "title": "Egg Mcmuffin",
+      "url": "http://vmlocal:8001/api/recipe/174",
+      "type": "petit déjeuner",
+      "price": 5.7,
+      "image": "https://assets.afcdn.com/recipe/20160322/61548_w420h344c1cx1632cy2464.jpg"
     },
     {
-      "id": 92,
-      "url": "http://vmlocal:8001/api/recipe/92"
-    },
-    {
-      "id": 106,
-      "url": "http://vmlocal:8001/api/recipe/106"
-    },
-    {
-      "id": 109,
-      "url": "http://vmlocal:8001/api/recipe/109"
+      "id": 176,
+      "title": "Milkshake et petit sandwich",
+      "url": "http://vmlocal:8001/api/recipe/176",
+      "type": "petit déjeuner",
+      "price": 6.07,
+      "image": "https://www.enfant.com/uploads/1000/petit-dej-fraicheur.jpg"
     },
     {
        "etc": "etc"        
@@ -269,7 +304,8 @@ Ex de requête :
 
 ```json
 {
-    "budget": 100
+    "budget": 100,
+    "userQuantity": 3
 }
 ```
 
@@ -283,33 +319,33 @@ Ex de réponse :
     "status": 200,
     "message": "Menu généré avec succès.",
     "budget": 100,
-    "coutMenu": 89
+    "totalPrice": 94.23,
+    "userQuantity": 3
   },
-  "idMenu": 25,
-  "createdAt": "2019-10-08T10:28:31+02:00",
+  "idMenu": 246,
+  "createdAt": "2019-10-11",
   "updatedAt": null,
+  "userQuantity": 3,
   "user": {
-    "id": 43,
-    "url": "http://vmlocal:8001/api/user/43"
+    "id": 65,
+    "url": "http://vmlocal:8001/api/user/65"
   },
   "recipes": [
     {
-      "id": 141,
-      "url": "http://vmlocal:8001/api/recipe/141",
-      "type": "dejeuner",
-      "price": 9
+      "id": 180,
+      "title": "Muesli dans son bain de yahourt nature",
+      "url": "http://vmlocal:8001/api/recipe/180",
+      "type": "petit déjeuner",
+      "price": 2.5,
+      "image": "https://static.cuisineaz.com/610x610/i76565-yaourt-muesli.jpg"
     },
     {
-      "id": 114,
-      "url": "http://vmlocal:8001/api/recipe/114",
-      "type": "dejeuner",
-      "price": 4
-    },
-    {
-      "id": 115,
-      "url": "http://vmlocal:8001/api/recipe/115",
-      "type": "dejeuner",
-      "price": 0
+      "id": 183,
+      "title": "Gaufres faciles et légères",
+      "url": "http://vmlocal:8001/api/recipe/183",
+      "type": "petit déjeuner",
+      "price": 1.42,
+      "image": "https://assets.afcdn.com/recipe/20140103/35197_w420h344c1cx1632cy2464.jpg"
     },
     {
        "etc": "etc"        
@@ -337,39 +373,35 @@ Méthode : GET
 
 Retourne une liste de course générée à partir d'un menu
 
+> pour les valeurs float, il faut faire un travail en front pour les arrondir (je n'ai pas réussi en back)
+
 Ex de réponse :
 
 ```json
 {
   "metadata": {
-    "menuId": 30,
-    "createdAt": "2019-10-07T10:28:31+02:00",
-    "userId": 41
+    "menuId": 245,
+    "createdAt": "2019-10-11T11:35:47+02:00",
+    "userId": 65,
+    "userQuantity": 6,
+    "shoppingTotalPrice": 185.6500000000001
   },
   "shoppingList": [
     {
-      "foodId": 287,
-      "name": "aut",
-      "quantity": 1,
-      "price": 0,
+      "foodId": 526,
+      "name": "farine",
+      "quantity": 1.67,
+      "price": 1.9,
       "unit": "kg",
-      "totalPrice": "0"
+      "totalPrice": 3.1599999999999997
     },
     {
-      "foodId": 373,
-      "name": "et",
-      "quantity": 1,
-      "price": 3,
-      "unit": "kg",
-      "totalPrice": "3"
-    },
-    {
-      "foodId": 446,
-      "name": "pariatur",
-      "quantity": 1,
-      "price": 2,
-      "unit": "kg",
-      "totalPrice": "2"
+      "foodId": 527,
+      "name": "oeuf",
+      "quantity": 54,
+      "price": 0.3,
+      "unit": "unité",
+      "totalPrice": 16.200000000000003
     },
     {
         "ext" : "etc"
