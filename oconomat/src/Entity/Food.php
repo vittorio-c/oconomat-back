@@ -58,6 +58,11 @@ class Food
      */
     private $labels;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $complementName;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
@@ -195,6 +200,18 @@ class Food
         if ($this->labels->contains($label)) {
             $this->labels->removeElement($label);
         }
+
+        return $this;
+    }
+
+    public function getComplementName(): ?string
+    {
+        return $this->complementName;
+    }
+
+    public function setComplementName(?string $complementName): self
+    {
+        $this->complementName = $complementName;
 
         return $this;
     }
