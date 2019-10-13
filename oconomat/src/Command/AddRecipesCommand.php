@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Service\Slugger;
 use App\Entity\Recipe;
+use App\Entity\RecipeStep;
 use App\Entity\Food;
 use App\Entity\Ingredient;
 use Symfony\Component\Console\Command\Command;
@@ -34,6 +35,8 @@ class AddRecipesCommand extends Command
 
     private $quantity;
 
+    private $steps;
+
     private $modificationUnitOfMeasure = false;
 
     private $differentUnitOfMeasure = false;
@@ -57,31 +60,46 @@ class AddRecipesCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $io = new SymfonyStyle($input, $output);
+        $em = $this->container->get('doctrine')->getManager();
 
         require 'recipes_array.php';
 
-        $recipe = $recipes['meta'];
+        foreach ($recipesToPersist as $recipe) {
+            $recipeMeta = $recipe['meta'];
 
-        $io->note('Recette parcourue : ' . $recipe['title']);
-        $io->note('URL : ' . $recipe['url']);
+            $io->note('Recette parcourue : ' . $recipeMeta['title']);
+            $io->note('URL : ' . $recipeMeta['url']);
 
-        $ingredients = $recipes['ingredients'];
+            $ingredients = $recipe['ingredients'];
 
-        $recipe = $this->persistRecipe($recipe);
+            $this->steps = $recipe['steps'];
 
-        foreach ($ingredients as $ingredient) {
-            $mainName = $ingredient['name']['main'];
-            $complementName = !empty($ingredient['name']['complement']) ? $ingredient['name']['complement'] : null;
-            $this->unit = $ingredient['unitCalc'];
-            $this->quantity = $ingredient['quantityCalc'];
-            $this->unitUser = $ingredient['unitUser'];
+            $recipe = $this->persistRecipe($recipeMeta);
 
-            $food = $this->checkFoodInDB($mainName, $complementName, $input, $output);
+            foreach ($this->steps as $key => $value) {
+                $step = new RecipeStep();
+                $step->setStepNumber($key);
+                $step->setContent($value);
+                $step->setRecipe($recipe);
+                $em->persist($step);
+                $em->flush();
+            }
 
-            $newIngredient = $this->persistIngredient($recipe, $food, $input, $output);
+            foreach ($ingredients as $ingredient) {
+                $mainName = $ingredient['name']['main'];
+                $complementName = !empty($ingredient['name']['complement']) ? $ingredient['name']['complement'] : null;
+                $this->unit = $ingredient['unitCalc'];
+                $this->quantity = $ingredient['quantityCalc'];
+                $this->unitUser = $ingredient['unitUser'];
+
+                $food = $this->checkFoodInDB($mainName, $complementName, $input, $output);
+
+                $newIngredient = $this->persistIngredient($recipe, $food, $input, $output);
+            }
+
+            $io->success('Recette correctement enregistrée en bdd');
         }
-
-        $io->success('Recette correctement enregistrée en bdd');
+        $io->success('Toutes les recettes ont été enregistrée en bdd');
     }
 
     public function persistRecipe($recipeMeta)
@@ -143,7 +161,6 @@ class AddRecipesCommand extends Command
             '========================================================================',
             '',
         ]);
-        //$types = ['agrume', 'alcool', 'condiment', 'eau', 'féculent', 'fruit', 'fruit de mer', 'fruit sec', 'glucide', 'herbes', 'légume', 'poisson', 'produit animal', 'produit laitier', 'viande'];
         $em = $this->container->get('doctrine')->getManager();
 
         $types = array_column($this->container->get('doctrine')->getRepository(Food::class)->findTypes(), 'types');
@@ -179,7 +196,6 @@ class AddRecipesCommand extends Command
             $em->flush();
             return $food;
         }
-        //return $foodId;
     }
 
     public function checkUnitsOfMeasure($name, $complementName, $output, $input)
@@ -195,7 +211,7 @@ class AddRecipesCommand extends Command
                 $this->oldUnit . 
                 '('.
                 $this->unitUser.
-                ')'
+                ')' .
                 '" de "' . 
                 $name . 
                 ' ' . 
@@ -265,7 +281,5 @@ class AddRecipesCommand extends Command
         } else {
             $io->note('Très bien ! ');
         }
-
-
     }
 }
