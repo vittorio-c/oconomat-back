@@ -142,7 +142,7 @@ class AddRecipesCommand extends Command
             $ingredient->setComplementInfo($complementName);
         }
 
-        $this->checkUnitsOfMeasure($food->getName(), $food->getComplementName(), $output, $input);
+        $this->checkUnitsOfMeasure($food->getName(), $complementName, $output, $input);
 
         $ingredient->setQuantity($this->quantity);
 
