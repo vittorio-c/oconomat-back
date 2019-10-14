@@ -58,10 +58,6 @@ class Food
      */
     private $labels;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $complementName;
 
     public function __construct()
     {
@@ -204,15 +200,4 @@ class Food
         return $this;
     }
 
-    public function getComplementName(): ?string
-    {
-        return $this->complementName;
-    }
-
-    public function setComplementName(?string $complementName): self
-    {
-        $this->complementName = $complementName;
-
-        return $this;
-    }
 }

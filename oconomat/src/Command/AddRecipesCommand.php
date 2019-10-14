@@ -94,7 +94,7 @@ class AddRecipesCommand extends Command
 
                 $food = $this->checkFoodInDB($mainName, $complementName, $input, $output);
 
-                $newIngredient = $this->persistIngredient($recipe, $food, $input, $output);
+                $newIngredient = $this->persistIngredient($recipe, $food, $complementName, $input, $output);
             }
 
             $io->success('Recette correctement enregistrée en bdd');
@@ -131,12 +131,16 @@ class AddRecipesCommand extends Command
         return $recipe;
     }
 
-    public function persistIngredient($recipe, $food, $input, $output)
+    public function persistIngredient($recipe, $food, $complementName, $input, $output)
     {
         $em = $this->container->get('doctrine')->getManager();
         $ingredient = new Ingredient();
         $ingredient->setAliment($food);
         $ingredient->setRecipe($recipe);
+
+        if (!empty($complementName)) {
+            $ingredient->setComplementInfo($complementName);
+        }
 
         $this->checkUnitsOfMeasure($food->getName(), $food->getComplementName(), $output, $input);
 
@@ -166,10 +170,10 @@ class AddRecipesCommand extends Command
         $types = array_column($this->container->get('doctrine')->getRepository(Food::class)->findTypes(), 'types');
 
         $food = $this->container->get('doctrine')->getRepository(Food::class)
-                     ->findOneBy(['name' => $name, 'complementName' => $complementName], ['createdAt' => 'DESC']);
+                     ->findOneBy(['name' => $name], ['createdAt' => 'DESC']);
 
         if (null !== $food) {
-            $output->writeln($name . ' ' . $complementName . ' trouvé dans la bdd.');
+            $output->writeln($name . ' (' . $complementName . ') trouvé dans la bdd.');
 
             $unit = $food->getUnit();
 
@@ -190,7 +194,7 @@ class AddRecipesCommand extends Command
             $food->setType($type);
             $food->setUnit($this->unit);
             $food->setName($name);
-            $food->setComplementName($complementName);
+            //$food->setComplementName($complementName);
             $food->setPrice($price);
             $em->persist($food);
             $em->flush();
@@ -225,7 +229,7 @@ class AddRecipesCommand extends Command
 
         if ($this->modificationUnitOfMeasure !== false) {
             $io->warning('Vous avez modifié l\'unité de mesure initiale. Veuillez modifier également la quantité pour la recette.');
-            $this->quantity = floatval($io->ask('Veuillez convertir "' . $this->quantity . ' / ' . $this->oldUnit . '" de "' . $name . ' ' . $complementName . '", en sa quantité équivalente en ' . $this->unit . '(float attendu)'));
+            $this->quantity = floatval($io->ask('Veuillez convertir "' . $this->quantity . ' / ' . $this->oldUnit . '('.  $this->unitUser  .  ')' . '" de "' . $name . ' ' . $complementName . '", en sa quantité équivalente en ' . $this->unit . '(float attendu)'));
             $this->modificationUnitOfMeasure = false;
         }
 
