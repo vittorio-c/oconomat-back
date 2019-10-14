@@ -68,6 +68,7 @@ class Recipe
         $this->recipeSteps = new ArrayCollection();
         $this->ingredients = new ArrayCollection();
         $this->menus = new ArrayCollection();
+        $this->createdAt = new \DateTime();
     }
 
     public function getId(): ?int
