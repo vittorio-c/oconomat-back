@@ -19,32 +19,23 @@ class FoodRepository extends ServiceEntityRepository
         parent::__construct($registry, Food::class);
     }
 
-    // /**
-    //  * @return Food[] Returns an array of Food objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function findTypes()
     {
-        return $this->createQueryBuilder('f')
-            ->andWhere('f.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('f.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
+        $qb = $this->createQueryBuilder('f');
+        $query = $qb->select('f.type AS types')
+                    ->groupBy('types')
+                    ->getQuery();
+        $types = $query->execute();
+        return $types;
     }
-    */
 
-    /*
-    public function findOneBySomeField($value): ?Food
+    public function findUnits()
     {
-        return $this->createQueryBuilder('f')
-            ->andWhere('f.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        $qb = $this->createQueryBuilder('f');
+        $query = $qb->select('f.unit AS units')
+                    ->groupBy('units')
+                    ->getQuery();
+        $units = $query->execute();
+        return $units;
     }
-    */
 }

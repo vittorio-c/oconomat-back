@@ -58,6 +58,7 @@ class Food
      */
     private $labels;
 
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
@@ -198,4 +199,5 @@ class Food
 
         return $this;
     }
+
 }
