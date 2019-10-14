@@ -33,6 +33,11 @@ class Ingredient
      */
     private $aliment;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $complementInfo;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
@@ -75,6 +80,18 @@ class Ingredient
     public function setAliment(?Food $aliment): self
     {
         $this->aliment = $aliment;
+
+        return $this;
+    }
+
+    public function getComplementInfo(): ?string
+    {
+        return $this->complementInfo;
+    }
+
+    public function setComplementInfo(?string $complementInfo): self
+    {
+        $this->complementInfo = $complementInfo;
 
         return $this;
     }
