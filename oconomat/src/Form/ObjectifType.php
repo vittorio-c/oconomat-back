@@ -14,6 +14,7 @@ class ObjectifType extends AbstractType
         $builder
             ->add('budget')
             ->add('userQuantity')
+            ->add('vegetarian')
 
         //->add('userQuantity')
         //->add('createdAt')

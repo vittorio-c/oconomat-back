@@ -305,7 +305,8 @@ Ex de requête :
 ```json
 {
     "budget": 100,
-    "userQuantity": 3
+    "userQuantity": 3,
+    "vegetarian": true
 }
 ```
 
@@ -326,6 +327,7 @@ Ex de réponse :
   "createdAt": "2019-10-11",
   "updatedAt": null,
   "userQuantity": 3,
+  "vegetarian": true,
   "user": {
     "id": 65,
     "url": "http://vmlocal:8001/api/user/65"
