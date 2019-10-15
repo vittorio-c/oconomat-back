@@ -168,14 +168,11 @@ class SecurityController extends AbstractController
         $currentPassword = $request->request->get('password');
         $newPassword = $request->request->get('newPassword');
 
-        // j'encode le mdp envoyé par l'utilisateur, pou vérifier si son hashage correspond à celui de la bdd
-        $currentPassword = $encoder->encodePassword($user, $currentPassword);
-        $user->setPassword($currentPassword);
-
         $passwordInDatabase = $user->getPassword();
 
+        $match = $encoder->isPasswordValid($user, $currentPassword);
         // vérifier si le mot de passe actuel correspond bien en bdd
-        if($currentPassword == $passwordInDatabase){
+        if($match){
             
             // Si oui encoder le nouveau mot de passe et remplacer l'ancien par celui-ci.
             $currentUser = $this->getDoctrine()->getRepository(User::class)->find($userId);
