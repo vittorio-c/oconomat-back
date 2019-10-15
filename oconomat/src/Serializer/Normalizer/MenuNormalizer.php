@@ -32,6 +32,7 @@ class MenuNormalizer implements NormalizerInterface
         $user = $object->getUser(); // menu 238 = userId 65
         $objectif = $object->getObjectif();
         $userQuantity = null !== $objectif ? $objectif->getUserQuantity() : 1;
+        $vegetarian = null !== $objectif ? $objectif->getVegetarian() : false;
 
         $userUrl = $this->getUrl(
             'user_find', 
@@ -67,6 +68,7 @@ class MenuNormalizer implements NormalizerInterface
             'createdAt' => $createdAt,
             'updatedAt' => $updatedAt,
             'userQuantity' => $userQuantity,
+            'vegetarian' => $vegetarian,
             'user' => [
                 'id' => $user->getId(),
                 'url' => $userUrl
