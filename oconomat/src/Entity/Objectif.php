@@ -47,6 +47,11 @@ class Objectif
      */
     private $menu;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $vegetarian;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
@@ -136,6 +141,18 @@ class Objectif
         if ($newObjectif !== $menu->getObjectif()) {
             $menu->setObjectif($newObjectif);
         }
+
+        return $this;
+    }
+
+    public function getVegetarian(): ?bool
+    {
+        return $this->vegetarian;
+    }
+
+    public function setVegetarian(?bool $vegetarian): self
+    {
+        $this->vegetarian = $vegetarian;
 
         return $this;
     }

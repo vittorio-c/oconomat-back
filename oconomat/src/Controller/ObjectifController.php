@@ -55,8 +55,9 @@ class ObjectifController extends AbstractController
             $user = $this->getUser();
             $budget = $data['budget'];
             $userQuantity = $data['userQuantity'] ?? 1;
+            $vegetarian = $data['vegetarian'] ?? false;
 
-            $menu = $menuGenerator->generateMenu($budget, $userQuantity);
+            $menu = $menuGenerator->generateMenu($budget, $userQuantity, $vegetarian);
 
             if ($menu === false) {
                 $data = json_encode([
