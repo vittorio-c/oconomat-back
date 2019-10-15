@@ -12,6 +12,7 @@ class MenuGenerator
     private $users;
     private $budget;
     private $targetPrice;
+    private $vegetarian;
 
     public function __construct(EntityManagerInterface $em)
     {
@@ -24,10 +25,11 @@ class MenuGenerator
      * @return array $menu
      *
      */
-    public function generateMenu($budget, $users)
+    public function generateMenu($budget, $users, $vegetarian)
     {
         $this->budget = $budget;
         $this->users = $users;
+        $this->vegetarian = $vegetarian;
         $recipeRepo = $this->em->getRepository(Recipe::class);
 
         // prix objectif par recette
@@ -44,15 +46,36 @@ class MenuGenerator
             return false;
         }
 
-        $breakfast = $recipeRepo->findBy(['type' => 'petit déjeuner']);
-        $lunchs = $recipeRepo->findBy(['type' => 'déjeuner']);
-        $dinners = $recipeRepo->findBy(['type' => 'dîner']);
+        $lunchs = [];
+        $dinners = [];
+        $breakfast = [];
+
+        if ($vegetarian) {
+            $recipes = $recipeRepo->getVegetarianRecipes();
+        } else {
+            $recipes = $recipeRepo->getAllRecipes();
+        }
+
+        foreach ($recipes as $recipe) {
+            switch ($recipe['type']) {
+            case 'petit déjeuner':
+                $breakfast[] = $recipe; 
+                break;
+            case 'déjeuner':
+                $lunchs[] = $recipe;
+                break;
+            case 'dîner':
+                $dinners[] = $recipe;
+                break;
+            }
+        }
 
         // on écrase les tableaux précédents avec des tableaux 
         // contenant uniquement des recettes correspondant plus ou moins au prix objectif
         $lunchs = $this->getTargetedRecipesWithPrice($lunchs);
         $dinners = $this->getTargetedRecipesWithPrice($dinners);
         $breakfast = $this->getTargetedRecipesWithPrice($breakfast);
+        //dump($breakfast, $lunchs, $dinners); exit;
 
         // construction du menu
         $menus = $this->buildMenu($breakfast, $lunchs, $dinners);
@@ -140,6 +163,7 @@ class MenuGenerator
      */
     public function getTargetedRecipesWithPrice(array $recipes)
     {
+        //dump($recipes); exit;
         $repository = $this->em->getRepository(Recipe::class);
 
         // tableau avec id de la  recette et prix total
@@ -147,7 +171,7 @@ class MenuGenerator
 
         // on élargit la limite pour les petits dejueners
         // car il y en a peu pour le moment, et ils sont tres peu chers
-        if ($recipes[0]->getType() == 'petit déjeuner') {
+        if ($recipes[0]['type'] == 'petit déjeuner') {
             $limit = 150;
         } else {
             $limit = 75;
@@ -156,16 +180,15 @@ class MenuGenerator
         foreach ($recipes as $recipe) {
             $price = round(
                 $repository->getRecipieTotalPrice(
-                    $recipe->getId()
-                )[0]['totalPrice'], 
-                2) * $this->users; 
+                    $recipe['id'])[0]['totalPrice'], 
+                    2) * $this->users; 
             $variation = ($price - ($this->targetPrice)) / ($this->targetPrice) * 100;
 
             if ($variation > $limit || $variation < -$limit) {
             } else {
-                $recipesArray[$recipe->getId()] = [
+                $recipesArray[$recipe['id']] = [
                     'price' => $price,
-                    'type' => $recipe->getType()
+                    'type' => $recipe['type']
                 ];
             }
         }
