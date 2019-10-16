@@ -20,15 +20,18 @@ class AuthenticationSuccessListener
             $budgetList =  $user->getObjectifs();
 
             $budget = null;
+            $userQuantity = null;
 
             if (!$budgetList->isEmpty())
             {
                 $budget =  $budgetList->last()->getBudget();
+                $userQuantity = $budgetList->last()->getUserQuantity();
             }
 
             $event->setData([
                 'id' => $user->getId(),
                 'budget' => $budget,
+                'userQuantity' => $userQuantity,
                 'firstname' => $user->getFirstname(),
                 'lastname' => $user->getLastname(),
                 'payload' => $event->getData(),

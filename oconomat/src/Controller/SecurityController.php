@@ -52,6 +52,7 @@ class SecurityController extends AbstractController
 
         if(empty($firstName) || empty($lastName) || empty($email) || empty($clearPassword) || empty($confirmPassword)){
             return $this->json('Tout les champs doivent être remplis');
+            exit;
         }
 
         $emailList = $this->getDoctrine()->getRepository(User::class)->getEmailList();
@@ -61,6 +62,7 @@ class SecurityController extends AbstractController
             foreach($emailArray as $value){
                 if($email == $value){
                     return $this->json('Email déjà existante');
+                    exit;
                 }
             }
         }
@@ -80,8 +82,10 @@ class SecurityController extends AbstractController
             $em->flush();
     
             return $this->json('Utilisateur ajouté en base de données !');
+            exit;
         }else{
             return $this->json('Les mots de passe ne correspondent pas !');
+            exit;
         }
 
     }
