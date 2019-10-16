@@ -50,6 +50,10 @@ class SecurityController extends AbstractController
         $clearPassword = $request->request->get('password');
         $confirmPassword = $request->request->get('passwordConfirm');
 
+        if(empty($firstName) || empty($lastName) || empty($email) || empty($clearPassword) || empty($confirmPassword)){
+            return $this->json('Tout les champs doivent être remplis');
+        }
+
         $emailList = $this->getDoctrine()->getRepository(User::class)->getEmailList();
 
 
