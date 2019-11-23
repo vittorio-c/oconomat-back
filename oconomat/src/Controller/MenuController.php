@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\Menu;
 use App\Entity\User;
 use App\Serializer\Normalizer\MenuNormalizer;
+use App\Service\CheckOwnership;
+use App\Service\ShoppingList;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -41,26 +43,30 @@ class MenuController extends AbstractController
      *      requirements={"menu": "\d*"}
      * )
      */
-    public function find(Menu $menu, MenuNormalizer $menuNormalizer)
+    public function find(Menu $menu, MenuNormalizer $menuNormalizer, CheckOwnership $checkOwnership)
     {
-        $user = $this->getUser();
+        $owner = $checkOwnership->check($menu);
 
-        if ($user === $menu->getUser()) {
+        if ($owner === true) {
             $serializer = new Serializer([$menuNormalizer], $this->encoder);
             $data = $serializer->serialize($menu, 'json');
-            return new Response($data, 200, ['Content-Type' => 'application/json']);
+            return new Response(
+                $data,
+                200,
+                ['Content-Type' => 'application/json']
+            );
+        } else {
+            return $this->json(
+                $checkOwnership->getData(),
+                $checkOwnership->getCode()
+            );
         }
-
-        $data = json_encode([
-            'status' => 401,
-            'message' => 'L\'utilisateur connecté n\'a pas les droits nécessaires pour accéder à cette ressource.'
-        ]);
-
-        return new Response($data, 401, ['Content-Type' => 'application/json']);
     }
 
     /**
      * Update a menu
+     *
+     * NOT DONE YET
      *
      * @Route(
      *      "/{menu}",
@@ -79,6 +85,8 @@ class MenuController extends AbstractController
 
     /**
      * Delete a menu
+     *
+     * NOT DONE YET
      *
      * @Route(
      *      "/{menu}",
@@ -105,51 +113,21 @@ class MenuController extends AbstractController
      *      requirements={"menu": "\d*"}
      * )
      */
-    public function shoppingList(Menu $menu)
+    public function shoppingList(Menu $menu, CheckOwnership $checkOwnership, ShoppingList $shoppingList)
     {
-        // get shopping list
-        $data = $this->getDoctrine()
-                     ->getRepository(Menu::class)
-                     ->getShoppinigListFromMenuId($menu->getId());
+        $owner = $checkOwnership->check($menu);
 
-        // merge duplicate items and get shopping list total price
-        $newData = [];
-        $shoppingTotalPrice = 0;
-        foreach ($data as $key => $value) {
-            $quantity = round(floatval($value['quantity']), 2);
-            $totalPrice = round(floatval($value['totalPrice']), 2);
-            $value['quantity'] = $quantity;
-            $value['totalPrice'] = $totalPrice;
+        if ($owner === true) {
+            $data = $shoppingList->generate($menu);
+            // serialize and send 
+            return $this->json($data);
 
-            $arrayTemp = array_column($newData, 'foodId');
-
-            if (!in_array($value['foodId'], $arrayTemp)) {
-                $newData[] = $value;
-            } else {
-                $id = array_search($value['foodId'], $arrayTemp);
-                $newData[$id]['quantity'] += $quantity;
-                $newData[$id]['totalPrice'] += $totalPrice;
-            }
-            $shoppingTotalPrice += $totalPrice;
+        } else {
+            return $this->json(
+                $checkOwnership->getData(),
+                $checkOwnership->getCode()
+            );
         }
-        $data = $newData;
-
-        // construct shopping list's metadatas
-        $metadata = [
-            'menuId' => $menu->getId(),
-            'createdAt' => $menu->getCreatedAt(),
-            'userId' => $menu->getUser()->getId(),
-            'userQuantity' => $menu->getObjectif()->getUserQuantity(),
-            'shoppingTotalPrice' => $shoppingTotalPrice
-        ];
-
-        // prepare php array
-        $shoppingList = [];
-        $shoppingList['metadata'] = $metadata;
-        $shoppingList['shoppingList'] = $data;
-
-        // serialize and send 
-        return $this->json($shoppingList);
     }
 
     /**
@@ -167,18 +145,19 @@ class MenuController extends AbstractController
         $em = $this->getDoctrine()->getRepository(Menu::class);
         $menu = $em->findOneBy(['user' => $user->getId()], ['createdAt' => 'DESC']);
 
+        // if menu exists
         if ($menu) {
             $serializer = new Serializer([$menuNormalizer], $this->encoder);
             $data = $serializer->serialize($menu, 'json');
             return new Response($data, 200, ['Content-Type' => 'application/json']);
         }
 
-        $data = json_encode([
+        // else : 404 TODO ExceptionListener
+        $data = [
             'status' => 404,
             'message' => 'L\'utilisateur connecté ne possède pas encore de menu.'
-        ]);
-
-        return new Response($data, 404, ['Content-Type' => 'application/json']);
+        ];
+        return $this->json($data, 404);
     }
 
     /**
