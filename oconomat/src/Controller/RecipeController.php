@@ -25,6 +25,8 @@ class RecipeController extends AbstractController
 
     public function __construct()
     {
+        // this is an 100% API website :
+        // we need the encoder into the whole object
         $this->encoder = [new JsonEncoder(new JsonEncode(JSON_UNESCAPED_SLASHES))];
     }
 
@@ -40,15 +42,22 @@ class RecipeController extends AbstractController
      */
     public function find(Recipe $recipe, RecipeNormalizer $recipeNormalizer)
     {
+        // NB there is always a connected user here
+        // since JWT does not allow disconnected users 
+        // to request this route
+
+        // get last user's quantity in order to display 
+        // correct ingredient's quantities
         $userId = $this->getUser()->getId();
         $em = $this->getDoctrine()->getRepository(Objectif::class);
-        $userQuantity = $em->findOneBy(
-            ['user' => $userId], 
-            ['createdAt' => 'DESC'])
-                           ->getUserQuantity();
+        // current objectif
+        $objectif = $em->findOneBy(['user' => $userId], ['createdAt' => 'DESC']);
+        // quantity 
+        $userQuantity = isset($objectif) ? $objectif->getUserQuantity() : 1;
+        // context for normalization
+        $context['metaData'] = [ 'userQuantity' => $userQuantity ];
 
-        $context['metaData'] = [ 'userQuantity' => $userQuantity ] ?? null;
-
+        // serialize
         $serializer = new Serializer([$recipeNormalizer], $this->encoder);
         $data = $serializer->serialize($recipe, 'json', $context);
 
@@ -57,6 +66,8 @@ class RecipeController extends AbstractController
 
     /**
      * Find ingredients of a recipe
+     *
+     * TODO delete si possible
      *
      * @Route(
      *      "/{recipe}/ingredients",
@@ -68,9 +79,8 @@ class RecipeController extends AbstractController
     public function findIngredients(Recipe $recipe)
     {
         // set up the serializer
-        $encoder = [new JsonEncoder()];
         $normalizers = [new DateTimeNormalizer(), new ObjectNormalizer()];
-        $serializer = new Serializer($normalizers, $encoder);
+        $serializer = new Serializer($normalizers, $this->encoder);
 
         // normalize with the data we want
         $data = $serializer->normalize($recipe->getIngredients(), null, [
@@ -88,6 +98,8 @@ class RecipeController extends AbstractController
 
     /**
      * Find steps of a recipe
+     *
+     * TODO delete si possible
      *
      * @Route(
      *      "/{recipe}/steps",
