@@ -31,6 +31,11 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class ObjectifController extends AbstractController
 {
+    // user's objectives
+    private $userQuantity;
+    private $vegetarian;
+    private $budget;
+
     /**
      * Generate a menu from user's objectives
      *
@@ -46,19 +51,21 @@ class ObjectifController extends AbstractController
         MenuGenerator $menuGenerator
     )
     {
-        $doctrine = $this->getDoctrine();
         $form = $this->createForm(ObjectifType::class);
-        $data = json_decode($request->getContent(), true);
+        $data = json_decode(
+            // strip_tags : get rid of potentially malicious html/js/php code (XSS)
+            strip_tags($request->getContent()),
+            true);
         $form->submit($data);
 
         if ($form->isValid()) {
-            $user = $this->getUser();
-            $budget = $data['budget'];
-            $userQuantity = $data['userQuantity'] ?? 1;
-            $vegetarian = $data['vegetarian'] ?? false;
 
-            $menu = $menuGenerator->generateMenu($budget, $userQuantity, $vegetarian);
+            $this->budget = $data['budget'];
+            $this->userQuantity = $data['userQuantity'] ?? 1; // en propriété
+            $this->vegetarian = $data['vegetarian'] ?? false;
+            $menu = $menuGenerator->generateMenu($this->budget, $this->userQuantity, $this->vegetarian);
 
+            // TODO if possible (see frontend) set 202 instead of 404
             if ($menu === false) {
                 $data = json_encode([
                     'status' => '404',
@@ -70,28 +77,7 @@ class ObjectifController extends AbstractController
             // total
             $total = round($menuGenerator->getMenuTotalPrice($menu), 2);
 
-            // passage en objets et enregistrements bdd
-            $menuObject = new Menu();
-
-            foreach ($menu as $key => $value) {
-                $repository = $doctrine->getRepository(Recipe::class);
-                $recipe = $repository->find($key);
-                $menuObject->addRecipe($recipe);
-            }
-
-            $menuObject->setUser($user);
-
-            $objectives = $form->getData();
-            $objectives->setUser($user);
-            $objectives->setUserQuantity($userQuantity);
-
-            $menuObject->setObjectif($objectives);
-
-            $em = $doctrine->getManager();
-            $em->persist($objectives);
-            $em->persist($menuObject);
-
-            $em->flush();
+            $menuObject = $this->saveMenu($menu, $form);
 
             // serialization and response
             $encoder = [new JsonEncoder(new JsonEncode(JSON_UNESCAPED_SLASHES))];
@@ -100,9 +86,9 @@ class ObjectifController extends AbstractController
             $context['metadata'] = [
                 'status' => 200,
                 'message' => 'Menu généré avec succès.',
-                'budget' => $budget,
+                'budget' => $this->budget,
                 'totalPrice' => $total,
-                'userQuantity' => $userQuantity
+                'userQuantity' => $this->userQuantity
             ];
 
             $data = $serializer->serialize($menuObject, 'json', $context);
@@ -111,6 +97,36 @@ class ObjectifController extends AbstractController
         } else {
             return $this->json("raté");
         }
+    }
+
+    public function saveMenu($menu, $form)
+    {
+        $doctrine = $this->getDoctrine();
+        $user = $this->getUser();
+
+        $menuObject = new Menu();
+
+        foreach ($menu as $key => $value) {
+            $repository = $doctrine->getRepository(Recipe::class);
+            $recipe = $repository->find($key);
+            $menuObject->addRecipe($recipe);
+        }
+
+        $menuObject->setUser($user);
+
+        $objectives = $form->getData();
+        $objectives->setUser($user);
+        $objectives->setUserQuantity($this->userQuantity);
+
+        $menuObject->setObjectif($objectives);
+
+        $em = $doctrine->getManager();
+        $em->persist($objectives);
+        $em->persist($menuObject);
+
+        $em->flush();
+
+        return $menuObject;
     }
 
     /**
