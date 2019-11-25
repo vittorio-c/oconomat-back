@@ -34,6 +34,11 @@ class RecipeRepository extends ServiceEntityRepository
         return $menu;
     }
 
+    /**
+     * Get global average price of all recipes
+     *
+     * @return array
+     */
     public function getAllRecipiesAveragePrice()
     {
         $em = $this->getEntityManager();
@@ -78,6 +83,9 @@ class RecipeRepository extends ServiceEntityRepository
         return $statement->fetchAll();
     }
 
+    /**
+     * Get all recipes
+     */
     public function getAllRecipes()
     {
         $em = $this->getEntityManager();
@@ -92,6 +100,9 @@ class RecipeRepository extends ServiceEntityRepository
 
     }
 
+    /**
+     * Get all recipes but the ones with animal products
+     */
     public function getVegetarianRecipes()
     {
         $em = $this->getEntityManager();
@@ -110,98 +121,5 @@ class RecipeRepository extends ServiceEntityRepository
         $statement->execute();
 
         return $statement->fetchAll();
-        /*$em = $this->getEntityManager();
-        $query = $em->createQuery(
-            '
-            SELECT r 
-            FROM App\Entity\Recipe r
-            WHERE r.id NOT IN (
-            SELECT
-               re.id
-            FROM App\Entity\Recipe re
-            INNER JOIN App\Entity\Ingredient i 
-            INNER JOIN App\Entity\Food  f
-            WHERE f.type IN (\'viande\', \'fruit de mer\', \'poisson\')
-            )
-            ');
-
-        $result = $query->getResult();
-         */
-        //  azdazd
-        /*$sub = $this->createQueryBuilder('r');
-        $subQuery = $sub->select('r')
-                        ->innerJoin('r.ingredients', 'i')
-                        ->innerJoin('i.aliment', 'f')
-                        ->where('f.type IN (:param)')
-                        ->setParameter('param', array('viande', 'fruit de mer', 'poisson'))
-                        ->getQuery()
-                        ->getResult();
-
-        $qb = $this->createQueryBuilder('r');
-        $query = $qb->select('r')
-                    ->where($qb->expr()->notIn('r.id', $subQuery))
-                    ->getQuery()
-                    ->getResult();
-        return $query;*/
-
-/*
-        $qb = $this->createQueryBuilder('r');
-        $query = $qb->select('r')
-                    ->andWhere(
-                        $qb->expr()->not(
-                            $qb->expr()->exists($sub->getDQL())
-                        )
-                    )
-                    ->getQuery();
-
-        $recipes = $query->execute();
-return $recipes;*/
     }
 }
-/*
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            'SELECT r.id
-            FROM App\Entity\Recipe r
-            WHERE NOT EXISTS
-            (SELECT f.type
-            FROM App\Entity\Ingredient i
-            INNER JOIN App\Entity\Food f
-            WHERE i.id = r.id 
-            AND f.type IN (\'viande\'))
-            ORDER BY r.id');
-
-        $result = $query->getResult();
- */
-        /*$sub = $this->createQueryBuilder('r');
-        $sub->select('r');
-        $sub->from('App\Entity\Recipe', 'r');
-        //$sub->where('i.id = 1514');
-        $sub->innerJoin('r.ingredient', 'i');
-        $sub->innerJoin('i.aliment', 'f');
-        $sub->where('f.type IN (:param)');
-        $sub->setParameter('param', array('viande', 'fruit de mer', 'poisson'));*/
-
-        /*$qb = $this->createQueryBuilder('r');
-        $query = $qb->select('r')
-                    ->innerJoin('r.ingredients', 'i')
-                    ->innerJoin('i.aliment', 'f')
-                    ->where($qb->expr()->notIn('f.type', ':param'))
-                    ->setParameter('param', array('viande', 'fruit de mer', 'poisson'))
-                    ->getQuery();
-        $recipes = $query->execute();
-        return $recipes;*/
-
-/*
- * ceci me retourne que les recettes avec viande :
- $qb = $this->createQueryBuilder('r');
-$query = $qb->select('r')
-            ->innerJoin('r.ingredients', 'i')
-            ->innerJoin('i.aliment', 'f')
-            ->where('f.type IN (:param)')
-            ->setParameter('param', array('viande', 'fruit de mer', 'poisson'))
-            ->getQuery();
-$recipes = $query->execute();
-return $recipes;
-
- */

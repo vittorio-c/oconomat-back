@@ -7,11 +7,40 @@ use App\Entity\Recipe;
 
 class MenuGenerator
 {
-    public const QUANTITY = 21;
+    /**
+     * Number of recipe to generate
+     *
+     * @var int
+     */
+    const QUANTITY = 21;
+
+    /**
+     * EntityManager
+     */
     private $em;
+
+    /**
+     * Number of users
+     *
+     * @var int
+     */
     private $users;
+
+    /**
+     * @var float
+     */
     private $budget;
+
+    /**
+     * Requested price per recipe
+     *
+     * @var float
+     */
     private $targetPrice;
+
+    /**
+     * @var bool
+     */
     private $vegetarian;
 
     public function __construct(EntityManagerInterface $em)
@@ -32,30 +61,39 @@ class MenuGenerator
         $this->vegetarian = $vegetarian;
         $recipeRepo = $this->em->getRepository(Recipe::class);
 
-        // prix objectif par recette
+        // target price = requested price per recipe
         $this->targetPrice = round($this->budget / self::QUANTITY, 2);
-        $averagePriceFromDB = floatval($recipeRepo->getAllRecipiesAveragePrice()[0]['average']) * $this->users;
 
-        $total = floatval($recipeRepo->getTotal()[0]['total']);
+        // global average price of all recipes in DB
+        // multiplied by number of users
+        $averagePriceFromDB = floatval(
+            $recipeRepo->getAllRecipiesAveragePrice()[0]['average']
+        ) * $this->users;
 
+        // $variation represents how much the requested price per recipe
+        // is far from the average price per recipe we have in DB
         $variation = ($this->targetPrice - $averagePriceFromDB) / $averagePriceFromDB * 100;
 
-        // si le prix cible dépasse de 50 % à la baisse ou à la hausse 
-        // la moyenne des prix en database
+        // if that variation is too wide, i.e. requested budget is too low or too high
+        // we can't provide correct output. Abord.
         if ($variation < -50 || $variation > 50) {
+            // TODO rise exception instead 
             return false;
         }
 
+        // let's set up some arrays
         $lunchs = [];
         $dinners = [];
         $breakfast = [];
 
+        // get all recipes or only vegetarian ones
         if ($vegetarian === true) {
             $recipes = $recipeRepo->getVegetarianRecipes();
         } else {
             $recipes = $recipeRepo->getAllRecipes();
         }
 
+        // populate our arrays
         foreach ($recipes as $recipe) {
             switch ($recipe['type']) {
             case 'petit déjeuner':
@@ -70,32 +108,25 @@ class MenuGenerator
             }
         }
 
-        // on écrase les tableaux précédents avec des tableaux 
-        // contenant uniquement des recettes correspondant plus ou moins au prix objectif
+        // For each type of recipe, we only want those whose price is close to the target price
         $lunchs = $this->getTargetedRecipesWithPrice($lunchs);
         $dinners = $this->getTargetedRecipesWithPrice($dinners);
         $breakfast = $this->getTargetedRecipesWithPrice($breakfast);
-        //dump($breakfast, $lunchs, $dinners); exit;
 
-        // construction du menu
+        // lets finally build our Menu V1 !
         $menus = $this->buildMenu($breakfast, $lunchs, $dinners);
 
-        // calcul du prix total du menu
-        $total = $this->getMenuTotalPrice($menus['menu']);
-
-        // ajustements pour être sur de ne pas dépasser le prix
+        // In case the menu is still above user's budget, let's make the V2
         $menu = $this->adjustMenu($menus['menu'], $menus['menuLeft']);
 
         return $menu;
     }
 
     /**
-     * Correct generated menu's price
-     * to make it the closest posible 
-     * to user's budget
+     * Corrects generated menu's price to make it 
+     * the closest posible to user's budget
      *
      * @return array $menu
-     *
      */
     public function adjustMenu($menu, $left)
     {
@@ -155,22 +186,22 @@ class MenuGenerator
     }
 
     /**
-     * Filter recipes on target price
-     * Return an array like : [recipeId => [price => 2, type => dejeuner]]
+     * Filters recipes against target price
+     * Returns an array like : [recipeId => [price => 2, type => dejeuner]]
      *
      * @return array $recipesArray
      *
      */
     public function getTargetedRecipesWithPrice(array $recipes)
     {
-        //dump($recipes); exit;
         $repository = $this->em->getRepository(Recipe::class);
 
-        // tableau avec id de la  recette et prix total
         $recipesArray = [];
 
-        // on élargit la limite pour les petits dejueners
-        // car il y en a peu pour le moment, et ils sont tres peu chers
+        // Set up a limit, in %, beyond wich the recipe is excluded
+        //
+        // NB : we enlarge the limit for breakfasts because 
+        // we have too few of them for now in database
         if ($recipes[0]['type'] == 'petit déjeuner') {
             $limit = 150;
         } else {
@@ -182,50 +213,36 @@ class MenuGenerator
                 $repository->getRecipieTotalPrice(
                     $recipe['id'])[0]['totalPrice'], 
                     2) * $this->users; 
+            // actual variation, in %, between recipe price and target price
             $variation = ($price - ($this->targetPrice)) / ($this->targetPrice) * 100;
 
-            if ($variation > $limit || $variation < -$limit) {
-            } else {
+            // if variation is within limits, add it to array
+            if ($variation < $limit && $variation > -$limit) {
                 $recipesArray[$recipe['id']] = [
                     'price' => $price,
                     'type' => $recipe['type']
                 ];
-            }
+            } 
         }
         return $recipesArray;
     }
 
     /**
-     * Build menu 
-     *
-     * TODO lever une exception plutôt que le return false
-     * une fois que la gestion des exception sera en place
+     * Build menu from random values 
      *
      * @return array [$menus, $menusLeft]
      *
      */
     public function buildMenu($breakfast, $lunchs, $dinners)
     {
-        // tableau menu avec les 21 recettes sélectionnées
+        // array with selected recipes
         $menu = [];
-        // tableau avec les recettes non sélectionnées
+        // array with not selected recipes
         $menuLeft = [];
-
-        $allRecipes = $breakfast + $lunchs + $dinners;
 
         $quantity = self::QUANTITY / 3;
 
-        // gestion d'un budget trop grand :
-        // si le nombre de possibilités est plus faible que la quantité demandée
-        // rappel : le nombre de possibilités est ici déjà filtré par le prix objectif
-        // autrement dit : si trop peu ou pas de repas correspondent au prix objectif
-        // alors exit
-        //if (count($lunchs) < $quantity || count($dinners) < $quantity || count($breakfast) < $quantity) {
-        //return false;
-        //}
-
-        // tableau numérique temporaire ([numKey => recipeId]) pour pouvoir tirer au hasard
-        // une recette sur la base du nombre généré plus bas
+        // temporary arrays ([numKey => recipeId]) to be able do draw random numbers
         $arrayBreakfast = array_keys($breakfast);
         $arrayLunchs = array_keys($lunchs);
         $arrayDinners = array_keys($dinners);
@@ -266,7 +283,9 @@ class MenuGenerator
             }
         }
 
-        // built menu "left" for futures purposes
+        // built menu "left" for helping to create
+        // menu V2 (if necessary) in next step
+        $allRecipes = $breakfast + $lunchs + $dinners;
         foreach ($allRecipes as $key => $value) {
             if (!array_key_exists($key, $menu)) {
                 $menuLeft[$key] = $value;
