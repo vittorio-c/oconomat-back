@@ -3,9 +3,11 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ObjectifRepository")
+ * @ORM\HasLifecycleCallbacks()
  */
 class Objectif
 {
@@ -18,6 +20,7 @@ class Objectif
 
     /**
      * @ORM\Column(type="float", options={"default" : 0})
+     * @Assert\Type("float")
      */
     private $budget;
 
@@ -39,6 +42,7 @@ class Objectif
 
     /**
      * @ORM\Column(type="smallint", nullable=true)
+     * @Assert\Type("int")
      */
     private $userQuantity;
 
@@ -155,5 +159,27 @@ class Objectif
         $this->vegetarian = $vegetarian;
 
         return $this;
+    }
+
+    /**
+     *
+     * @ORM\PrePersist()
+     *
+     */
+    public function prePersist()
+    {
+        // Force persist boolean value in DB
+        $this->vegetarian = (bool) $this->vegetarian;
+    }
+
+    /**
+     *
+     * @ORM\PreUpdate()
+     *
+     */
+    public function preUpdate()
+    {
+        // Force persist boolean value in DB
+        $this->vegetarian = (bool) $this->vegetarian; //Force using boolean value 
     }
 }

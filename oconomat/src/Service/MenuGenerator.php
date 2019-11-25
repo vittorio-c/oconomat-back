@@ -50,7 +50,7 @@ class MenuGenerator
         $dinners = [];
         $breakfast = [];
 
-        if ($vegetarian) {
+        if ($vegetarian === true) {
             $recipes = $recipeRepo->getVegetarianRecipes();
         } else {
             $recipes = $recipeRepo->getAllRecipes();

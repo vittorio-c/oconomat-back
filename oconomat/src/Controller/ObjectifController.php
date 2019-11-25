@@ -61,8 +61,13 @@ class ObjectifController extends AbstractController
         if ($form->isValid()) {
 
             $this->budget = $data['budget'];
-            $this->userQuantity = $data['userQuantity'] ?? 1; // en propriété
-            $this->vegetarian = $data['vegetarian'] ?? false;
+            $this->userQuantity = $data['userQuantity'] ?? 1; 
+
+            // we need to explicitly cast this value as php boolean
+            // in case we receive '1' or '0' instead of 'true' / 'false'
+            // '1'/'0' are valid boolean value in mysql
+            $this->vegetarian = (bool) $data['vegetarian'];
+
             $menu = $menuGenerator->generateMenu($this->budget, $this->userQuantity, $this->vegetarian);
 
             // TODO if possible (see frontend) set 202 instead of 404
@@ -74,8 +79,8 @@ class ObjectifController extends AbstractController
                 return new Response($data, 404, ['Content-Type' => 'application/json']);
             }
 
-            // total
-            $total = round($menuGenerator->getMenuTotalPrice($menu), 2);
+            // total price
+            $totalPrice = round($menuGenerator->getMenuTotalPrice($menu), 2);
 
             $menuObject = $this->saveMenu($menu, $form);
 
@@ -87,7 +92,7 @@ class ObjectifController extends AbstractController
                 'status' => 200,
                 'message' => 'Menu généré avec succès.',
                 'budget' => $this->budget,
-                'totalPrice' => $total,
+                'totalPrice' => $totalPrice,
                 'userQuantity' => $this->userQuantity
             ];
 
@@ -95,7 +100,7 @@ class ObjectifController extends AbstractController
 
             return new Response($data, 200, ['Content-Type' => 'application/json']);
         } else {
-            return $this->json("raté");
+            return $this->json("Formulaire invalide");
         }
     }
 
