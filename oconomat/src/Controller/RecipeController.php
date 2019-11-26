@@ -57,7 +57,7 @@ class RecipeController extends AbstractController
         // context for normalization
         $context['metaData'] = [ 'userQuantity' => $userQuantity ];
 
-        // serialize
+        // set up serializer, give context and serialize
         $serializer = new Serializer([$recipeNormalizer], $this->encoder);
         $data = $serializer->serialize($recipe, 'json', $context);
 

@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * Menu normalizer
+ * Recipe normalizer
  */
 class RecipeNormalizer implements NormalizerInterface
 {
@@ -22,10 +22,9 @@ class RecipeNormalizer implements NormalizerInterface
      */
     public function normalize($object, $format = null, array $context = array())
     {
-        $recipeSteps = [];
-
         $userQuantity = $context['metaData']['userQuantity'] ?? 1;
 
+        $recipeSteps = [];
         foreach ($object->getRecipeSteps() as $step) {
             $recipeSteps[] = [
                 'stepNumber' => $step->getStepNumber(),
@@ -34,13 +33,11 @@ class RecipeNormalizer implements NormalizerInterface
         }
 
         $ingredients = [];
-
         foreach ($object->getIngredients() as $ingredient) {
             $aliments = [
                 'name' => $ingredient->getAliment()->getName(), 
                 'unit' => $ingredient->getAliment()->getUnit()
             ];
-
             $ingredients[] = [
                 'quantity' => $ingredient->getQuantity() * $userQuantity,
                 'aliment' => $aliments
@@ -72,5 +69,4 @@ class RecipeNormalizer implements NormalizerInterface
     {
         return $data instanceof Recipe;
     }
-
 }
