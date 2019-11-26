@@ -5,6 +5,9 @@ namespace App\Service;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Menu;
 
+/**
+ * Generate shopping list from $menu
+ */
 class ShoppingList
 {
     public function __construct(EntityManagerInterface $em)

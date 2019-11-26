@@ -29,23 +29,25 @@ class MenuNormalizer implements NormalizerInterface
      */
     public function normalize($object, $format = null, array $context = array())
     {
-        $user = $object->getUser(); // menu 238 = userId 65
+        // get metadata
+        $user = $object->getUser(); // ex: menu 238 = userId 65
         $objectif = $object->getObjectif();
         $userQuantity = null !== $objectif ? $objectif->getUserQuantity() : 1;
         $vegetarian = null !== $objectif ? $objectif->getVegetarian() : false;
+        $createdAt = $object->getCreatedAt()->format('Y-m-d');
+        $updatedAt = $object->getUpdatedAt() ? $object->getUpdatedAt()->format('Y-m-d') : null;
 
+        // generate URL for user
         $userUrl = $this->getUrl(
             'user_find', 
             ['user' => $user->getId()],
             UrlGeneratorInterface::ABSOLUTE_URL
         );
 
-        $recipes = $object->getRecipes();
-        $createdAt = $object->getCreatedAt()->format('Y-m-d');
-        $updatedAt = $object->getUpdatedAt() ? $object->getUpdatedAt()->format('Y-m-d') : null;
-        $recipeRepo = $this->em->getRepository(Recipe::class);
-
+        // build array of recipes
         $recipesArray = [];
+        $recipes = $object->getRecipes();
+        $recipeRepo = $this->em->getRepository(Recipe::class);
         foreach ($recipes as $recipe) {
             $id = $recipe->getId();
             $url = $this->getUrl('recipe_find', ['recipe' => $id], UrlGeneratorInterface::ABSOLUTE_URL);
@@ -53,6 +55,7 @@ class MenuNormalizer implements NormalizerInterface
             $price = round($recipeRepo->getRecipieTotalPrice($id)[0]['totalPrice'] * $userQuantity, 2);
             $image = $recipe->getImage();
             $title = $recipe->getTitle();
+            // add current recipe to end of array
             $recipesArray[] = [
                 'id' => $id,
                 'title' => $title,
@@ -63,6 +66,7 @@ class MenuNormalizer implements NormalizerInterface
             ];
         }
 
+        // build final array
         $data = [
             'idMenu' => $object->getId(),
             'createdAt' => $createdAt,
@@ -76,6 +80,7 @@ class MenuNormalizer implements NormalizerInterface
             'recipes' => $recipesArray
         ];
 
+        // if $context is set, prepend it 
         if (isset($context)) {
             $data = $context + $data;
         }
