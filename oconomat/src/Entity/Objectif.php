@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ObjectifRepository")
@@ -20,7 +21,6 @@ class Objectif
 
     /**
      * @ORM\Column(type="float", options={"default" : 0})
-     * @Assert\Type("float")
      */
     private $budget;
 
@@ -182,4 +182,24 @@ class Objectif
         // Force persist boolean value in DB
         $this->vegetarian = (bool) $this->vegetarian; //Force using boolean value 
     }
+
+    /**
+     * @Assert\Callback
+     */
+    /*public function validate(ExecutionContextInterface $context, $payload)
+    {
+
+        dump('Actual value is : ' . $this->budget);
+
+        if (!is_float($this->budget)) {
+            dump('Value is NOT FLOAT');
+            $context->buildViolation('This is not a float type.')
+                    ->atPath('budget')
+                    ->addViolation();
+            exit;
+        } else {
+            dump('Value is FLOAT'); 
+            exit;
+        }
+    }*/
 }

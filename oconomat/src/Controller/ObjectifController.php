@@ -9,6 +9,7 @@ use App\Entity\Menu;
 use App\Entity\Objectif;
 use App\Entity\Recipe;
 use App\Form\ObjectifType;
+use App\DTO\ObjectifDto;
 use App\Service\MenuGenerator;
 use App\Serializer\Normalizer\MenuNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,6 +25,8 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\HttpFoundation\ParameterBag;
 
 
 /**
@@ -48,17 +51,35 @@ class ObjectifController extends AbstractController
     public function generateMenu(
         Request $request,
         MenuNormalizer $menuNormalizer,
-        MenuGenerator $menuGenerator
+        MenuGenerator $menuGenerator,
+        ValidatorInterface $validator
     )
     {
         $form = $this->createForm(ObjectifType::class);
-        $data = json_decode(
+        $data['objectif'] = json_decode(
             // strip_tags : get rid of potentially malicious html/js/php code (XSS)
             strip_tags($request->getContent()),
             true);
-        $form->submit($data);
+        $request->request = new ParameterBag($data);
+        //$dto = ObjectifDto::fromRequestData($data);
+        //$errors = $validator->validate($dto);
+        //if (count($errors) > 0) {
+            ////$errorsString = (string) $errors;
+            //return $this->json($errors);
+        //} else {
+            //return $this->json('everithing fine');
+        //}
+        //
 
-        if ($form->isValid()) {
+        // c'est ici que l'autocast se fait !!!!!!!!!!!!!
+        //$form->submit($data);
+        dump($request);
+        $form->handleRequest($request);
+        dump($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            dump('valide');
+            dump($form); exit;
 
             $this->budget = $data['budget'];
             $this->userQuantity = $data['userQuantity'] ?? 1; 
@@ -67,6 +88,7 @@ class ObjectifController extends AbstractController
             // in case we receive '1' or '0' instead of 'true' / 'false'
             // '1'/'0' are valid boolean value in mysql
             $this->vegetarian = (bool) $data['vegetarian'];
+            //dump($this->vegetarian);exit;
 
             $menu = $menuGenerator->generateMenu($this->budget, $this->userQuantity, $this->vegetarian);
 
@@ -100,6 +122,8 @@ class ObjectifController extends AbstractController
 
             return new Response($data, 200, ['Content-Type' => 'application/json']);
         } else {
+            dump('NON valide');
+            dump($form); exit;
             return $this->json("Formulaire invalide");
         }
     }
