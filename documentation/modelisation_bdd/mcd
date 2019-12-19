@@ -10,7 +10,7 @@ has recipes, 1N MENU, 0N RECIPE
 :
 has label, 0N FOOD, 0N LABEL 
 
-RECIPE_STEP: step_number, content
+RECIPE_STEP: stepNumber, content
 :
 MENU:
 :
@@ -18,8 +18,10 @@ MENU:
 LABEL: name
 
 
+has objectives2, 11 OBJECTIF, 11 MENU
+:
 has user, 1N USER, 11 MENU
 
-OBJECTIF: budget
+OBJECTIF: budget,vegetarian,userQuantity
 has objectives, 11 OBJECTIF, 1N USER
 USER: firstname, lastname, email, password
