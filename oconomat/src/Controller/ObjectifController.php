@@ -55,80 +55,60 @@ class ObjectifController extends AbstractController
         ValidatorInterface $validator
     )
     {
-        $form = $this->createForm(ObjectifType::class);
-        $data['objectif'] = json_decode(
-            // strip_tags : get rid of potentially malicious html/js/php code (XSS)
+        $data = json_decode(
             strip_tags($request->getContent()),
             true);
-        $request->request = new ParameterBag($data);
-        //$dto = ObjectifDto::fromRequestData($data);
-        //$errors = $validator->validate($dto);
-        //if (count($errors) > 0) {
-            ////$errorsString = (string) $errors;
-            //return $this->json($errors);
-        //} else {
-            //return $this->json('everithing fine');
-        //}
-        //
 
-        // c'est ici que l'autocast se fait !!!!!!!!!!!!!
-        //$form->submit($data);
-        dump($request);
-        $form->handleRequest($request);
-        dump($request);
+        $dto = ObjectifDto::fromRequestData($data);
+        $errors = $validator->validate($dto);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            dump('valide');
-            dump($form); exit;
-
-            $this->budget = $data['budget'];
-            $this->userQuantity = $data['userQuantity'] ?? 1; 
-
-            // we need to explicitly cast this value as php boolean
-            // in case we receive '1' or '0' instead of 'true' / 'false'
-            // '1'/'0' are valid boolean value in mysql
-            $this->vegetarian = (bool) $data['vegetarian'];
-            //dump($this->vegetarian);exit;
-
-            $menu = $menuGenerator->generateMenu($this->budget, $this->userQuantity, $this->vegetarian);
-
-            // TODO if possible (see frontend) set 202 instead of 404
-            if ($menu === false) {
-                $data = json_encode([
-                    'status' => '404',
-                    'message' => 'Budget trop haut ou trop bas, veuillez recommencer.'
-                ]);
-                return new Response($data, 404, ['Content-Type' => 'application/json']);
+        if (count($errors) > 0) {
+            $data = [];
+            $data['code status'] = 400;
+            foreach ($errors as $error) {
+                $data['errors'][$error->getPropertyPath()] = $error->getMessage();
             }
+            return $this->json($data, 400);
+        } 
 
-            // total price
-            $totalPrice = round($menuGenerator->getMenuTotalPrice($menu), 2);
+        $this->budget = $data['budget'];
+        $this->userQuantity = $data['userQuantity'] ?? 1; 
+        $this->vegetarian = $data['vegetarian'];
 
-            $menuObject = $this->saveMenu($menu, $form);
+        $menu = $menuGenerator->generateMenu($this->budget, $this->userQuantity, $this->vegetarian);
 
-            // serialization and response
-            $encoder = [new JsonEncoder(new JsonEncode(JSON_UNESCAPED_SLASHES))];
-            $serializer = new Serializer([$menuNormalizer], $encoder);
-
-            $context['metadata'] = [
-                'status' => 200,
-                'message' => 'Menu généré avec succès.',
-                'budget' => $this->budget,
-                'totalPrice' => $totalPrice,
-                'userQuantity' => $this->userQuantity
-            ];
-
-            $data = $serializer->serialize($menuObject, 'json', $context);
-
-            return new Response($data, 200, ['Content-Type' => 'application/json']);
-        } else {
-            dump('NON valide');
-            dump($form); exit;
-            return $this->json("Formulaire invalide");
+        // TODO if possible (see frontend) set 202 instead of 404
+        if ($menu === false) {
+            $data = json_encode([
+                'code status' => 404,
+                'message' => 'Budget is too high or too low. Please try again.'
+            ]);
+            return new Response($data, 404, ['Content-Type' => 'application/json']);
         }
+
+        // total price
+        $totalPrice = round($menuGenerator->getMenuTotalPrice($menu), 2);
+
+        $menuObject = $this->saveMenu($menu);
+
+        // serialization and response
+        $encoder = [new JsonEncoder(new JsonEncode(JSON_UNESCAPED_SLASHES))];
+        $serializer = new Serializer([$menuNormalizer], $encoder);
+
+        $context['metadata'] = [
+            'status' => 200,
+            'message' => 'Menu généré avec succès.',
+            'budget' => $this->budget,
+            'totalPrice' => $totalPrice,
+            'userQuantity' => $this->userQuantity
+        ];
+
+        $data = $serializer->serialize($menuObject, 'json', $context);
+
+        return new Response($data, 200, ['Content-Type' => 'application/json']);
     }
 
-    public function saveMenu($menu, $form)
+    public function saveMenu($menu)
     {
         $doctrine = $this->getDoctrine();
         $user = $this->getUser();
@@ -143,9 +123,12 @@ class ObjectifController extends AbstractController
 
         $menuObject->setUser($user);
 
-        $objectives = $form->getData();
+        $objectives = new Objectif();
         $objectives->setUser($user);
+        $objectives->setBudget($this->budget);
         $objectives->setUserQuantity($this->userQuantity);
+        // ici
+        $objectives->setVegetarian($this->vegetarian);
 
         $menuObject->setObjectif($objectives);
 
