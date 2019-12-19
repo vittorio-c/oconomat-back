@@ -38,10 +38,40 @@ class MenuGenerator
      */
     private $targetPrice;
 
+    /*
+     *  global average price of all recipes in DB
+     *
+     *  @var float
+     */
+    private $averagePriceFromDB;
+
+    /**
+     * represents how much $targetPrice
+     * is far from $averagePriceFromDB
+     *
+     * @var float
+     */
+    private $variation;
+
     /**
      * @var bool
      */
     private $vegetarian;
+
+    /*
+     * @var array
+     */
+    private $lunchs = [];
+
+    /*
+     * @var array
+     */
+    private $dinners = [];
+
+    /*
+     * @var array
+     */
+    private $breakfast = [];
 
     public function __construct(EntityManagerInterface $em)
     {
@@ -56,70 +86,169 @@ class MenuGenerator
      */
     public function generateMenu($budget, $users, $vegetarian)
     {
+        $recipeRepo = $this->em->getRepository(Recipe::class);
+
+        // set values
         $this->budget = $budget;
         $this->users = $users;
         $this->vegetarian = $vegetarian;
-        $recipeRepo = $this->em->getRepository(Recipe::class);
-
-        // target price = requested price per recipe
         $this->targetPrice = round($this->budget / self::QUANTITY, 2);
-
-        // global average price of all recipes in DB
-        // multiplied by number of users
-        $averagePriceFromDB = floatval(
+        $this->averagePriceFromDB = floatval(
             $recipeRepo->getAllRecipiesAveragePrice()[0]['average']
         ) * $this->users;
+        $this->variation = ($this->targetPrice - $this->averagePriceFromDB)
+            / $this->averagePriceFromDB * 100;
 
-        // $variation represents how much the requested price per recipe
-        // is far from the average price per recipe we have in DB
-        $variation = ($this->targetPrice - $averagePriceFromDB) / $averagePriceFromDB * 100;
-
-        // if that variation is too wide, i.e. requested budget is too low or too high
-        // we can't provide correct output. Abord.
-        if ($variation < -50 || $variation > 50) {
+        // if variation is too wide, abord
+        if ($this->variation < -50 || $this->variation > 50) {
             // TODO rise exception instead 
             return false;
         }
 
-        // let's set up some arrays
-        $lunchs = [];
-        $dinners = [];
-        $breakfast = [];
-
-        // get all recipes or only vegetarian ones
+        // vegetarian filter 
         if ($vegetarian === true) {
             $recipes = $recipeRepo->getVegetarianRecipes();
         } else {
             $recipes = $recipeRepo->getAllRecipes();
         }
 
-        // populate our arrays
+        // populate arrays
         foreach ($recipes as $recipe) {
             switch ($recipe['type']) {
             case 'petit déjeuner':
-                $breakfast[] = $recipe; 
+                $this->breakfast[] = $recipe; 
                 break;
             case 'déjeuner':
-                $lunchs[] = $recipe;
+                $this->lunchs[] = $recipe;
                 break;
             case 'dîner':
-                $dinners[] = $recipe;
+                $this->dinners[] = $recipe;
                 break;
             }
         }
 
-        // For each type of recipe, we only want those whose price is close to the target price
-        $lunchs = $this->getTargetedRecipesWithPrice($lunchs);
-        $dinners = $this->getTargetedRecipesWithPrice($dinners);
-        $breakfast = $this->getTargetedRecipesWithPrice($breakfast);
+        // price filter
+        $lunchs = $this->getTargetedRecipesWithPrice($this->lunchs);
+        $dinners = $this->getTargetedRecipesWithPrice($this->dinners);
+        $breakfast = $this->getTargetedRecipesWithPrice($this->breakfast);
 
-        // lets finally build our Menu V1 !
-        $menus = $this->buildMenu($breakfast, $lunchs, $dinners);
+        // randomize
+        $menuFirst = $this->shuffleMenu($breakfast, $lunchs, $dinners);
 
-        // In case the menu is still above user's budget, let's make the V2
-        $menu = $this->adjustMenu($menus['menu'], $menus['menuLeft']);
+        // price filter 2
+        $menuSecond = $this->adjustMenu($menuFirst['menu'], $menuFirst['menuLeft']);
 
-        return $menu;
+        return $menuSecond;
+    }
+
+
+    /**
+     * Filters recipes against target price
+     * Returns an array like : [recipeId => [price => 2, type => dejeuner]]
+     *
+     * @return array $recipesArray
+     *
+     */
+    public function getTargetedRecipesWithPrice(array $recipes)
+    {
+        $repository = $this->em->getRepository(Recipe::class);
+
+        $recipesArray = [];
+
+        // Set up a limit, in %, beyond wich the recipe is excluded
+        // NB : we enlarge the limit for breakfasts because 
+        // we have too few of them for now in database
+        if ($recipes[0]['type'] == 'petit déjeuner') {
+            $limit = 150;
+        } else {
+            $limit = 75;
+        }
+
+        foreach ($recipes as $recipe) {
+            $price = round(
+                $repository->getRecipieTotalPrice(
+                    $recipe['id'])[0]['totalPrice'], 
+                    2) * $this->users; 
+            // actual variation, in %, between recipe price and target price
+            $variation = ($price - ($this->targetPrice)) / ($this->targetPrice) * 100;
+
+            // if variation is within limits, add it to array
+            if ($variation < $limit && $variation > -$limit) {
+                $recipesArray[$recipe['id']] = [
+                    'price' => $price,
+                    'type' => $recipe['type']
+                ];
+            } 
+        }
+        return $recipesArray;
+    }
+
+    /**
+     * Build menu from random values 
+     *
+     * @return array [$menus, $menusLeft]
+     *
+     */
+    public function shuffleMenu($breakfast, $lunchs, $dinners)
+    {
+        // array with selected recipes
+        $menu = [];
+        // array with not selected recipes
+        $menuLeft = [];
+
+        $quantity = self::QUANTITY / 3;
+
+        // temporary arrays ([numKey => recipeId]) to be able do draw random numbers
+        $arrayBreakfast = array_keys($breakfast);
+        $arrayLunchs = array_keys($lunchs);
+        $arrayDinners = array_keys($dinners);
+
+        // 7 breakfast
+        for ($i = 0; $i < $quantity; $i++) {
+            $n = rand(0, count($breakfast) - 1);
+            $key = $arrayBreakfast[$n];
+            $value = $breakfast[$key];
+            if (!array_key_exists($key, $menu)) {
+                $menu[$key] = $value;
+            } else {
+                $i--;
+            }
+        }
+
+        // 7 lunchs
+        for ($i = 0; $i < $quantity; $i++) {
+            $n = rand(0, count($lunchs) - 1);
+            $key = $arrayLunchs[$n];
+            $value = $lunchs[$key];
+            if (!array_key_exists($key, $menu)) {
+                $menu[$key] = $value;
+            } else {
+                $i--;
+            }
+        }
+
+        // 7 dinners
+        for ($i = 0; $i < $quantity; $i++) {
+            $n = rand(0, count($dinners) - 1);
+            $key = $arrayDinners[$n];
+            $value = $dinners[$key];
+            if (!array_key_exists($key, $menu)) {
+                $menu[$key] = $value;
+            } else {
+                $i--;
+            }
+        }
+
+        // built menu "left" for helping to create
+        // menu V2 (if necessary) in next step
+        $allRecipes = $breakfast + $lunchs + $dinners;
+        foreach ($allRecipes as $key => $value) {
+            if (!array_key_exists($key, $menu)) {
+                $menuLeft[$key] = $value;
+            }
+        }
+
+        return ['menu' => $menu, 'menuLeft' => $menuLeft];
     }
 
     /**
@@ -183,116 +312,6 @@ class MenuGenerator
             $total += $value['price'];
         }
         return $total;
-    }
-
-    /**
-     * Filters recipes against target price
-     * Returns an array like : [recipeId => [price => 2, type => dejeuner]]
-     *
-     * @return array $recipesArray
-     *
-     */
-    public function getTargetedRecipesWithPrice(array $recipes)
-    {
-        $repository = $this->em->getRepository(Recipe::class);
-
-        $recipesArray = [];
-
-        // Set up a limit, in %, beyond wich the recipe is excluded
-        //
-        // NB : we enlarge the limit for breakfasts because 
-        // we have too few of them for now in database
-        if ($recipes[0]['type'] == 'petit déjeuner') {
-            $limit = 150;
-        } else {
-            $limit = 75;
-        }
-
-        foreach ($recipes as $recipe) {
-            $price = round(
-                $repository->getRecipieTotalPrice(
-                    $recipe['id'])[0]['totalPrice'], 
-                    2) * $this->users; 
-            // actual variation, in %, between recipe price and target price
-            $variation = ($price - ($this->targetPrice)) / ($this->targetPrice) * 100;
-
-            // if variation is within limits, add it to array
-            if ($variation < $limit && $variation > -$limit) {
-                $recipesArray[$recipe['id']] = [
-                    'price' => $price,
-                    'type' => $recipe['type']
-                ];
-            } 
-        }
-        return $recipesArray;
-    }
-
-    /**
-     * Build menu from random values 
-     *
-     * @return array [$menus, $menusLeft]
-     *
-     */
-    public function buildMenu($breakfast, $lunchs, $dinners)
-    {
-        // array with selected recipes
-        $menu = [];
-        // array with not selected recipes
-        $menuLeft = [];
-
-        $quantity = self::QUANTITY / 3;
-
-        // temporary arrays ([numKey => recipeId]) to be able do draw random numbers
-        $arrayBreakfast = array_keys($breakfast);
-        $arrayLunchs = array_keys($lunchs);
-        $arrayDinners = array_keys($dinners);
-
-        // 7 breakfast
-        for ($i = 0; $i < $quantity; $i++) {
-            $n = rand(0, count($breakfast) - 1);
-            $key = $arrayBreakfast[$n];
-            $value = $breakfast[$key];
-            if (!array_key_exists($key, $menu)) {
-                $menu[$key] = $value;
-            } else {
-                $i--;
-            }
-        }
-
-        // 7 lunchs
-        for ($i = 0; $i < $quantity; $i++) {
-            $n = rand(0, count($lunchs) - 1);
-            $key = $arrayLunchs[$n];
-            $value = $lunchs[$key];
-            if (!array_key_exists($key, $menu)) {
-                $menu[$key] = $value;
-            } else {
-                $i--;
-            }
-        }
-
-        // 7 dinners
-        for ($i = 0; $i < $quantity; $i++) {
-            $n = rand(0, count($dinners) - 1);
-            $key = $arrayDinners[$n];
-            $value = $dinners[$key];
-            if (!array_key_exists($key, $menu)) {
-                $menu[$key] = $value;
-            } else {
-                $i--;
-            }
-        }
-
-        // built menu "left" for helping to create
-        // menu V2 (if necessary) in next step
-        $allRecipes = $breakfast + $lunchs + $dinners;
-        foreach ($allRecipes as $key => $value) {
-            if (!array_key_exists($key, $menu)) {
-                $menuLeft[$key] = $value;
-            }
-        }
-
-        return ['menu' => $menu, 'menuLeft' => $menuLeft];
     }
 }
 
