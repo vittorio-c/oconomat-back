@@ -40,28 +40,35 @@ class RecipeController extends AbstractController
      *      requirements={"recipe": "\d*"}
      * )
      */
-    public function find(Recipe $recipe, RecipeNormalizer $recipeNormalizer)
+    public function find(Recipe $recipe = null, RecipeNormalizer $recipeNormalizer)
     {
         // NB there is always a connected user here
         // since JWT does not allow disconnected users 
         // to request this route
-
-        // get last user's quantity in order to display 
-        // correct ingredient's quantities
-        $userId = $this->getUser()->getId();
-        $em = $this->getDoctrine()->getRepository(Objectif::class);
-        // current objectif
-        $objectif = $em->findOneBy(['user' => $userId], ['createdAt' => 'DESC']);
-        // quantity 
-        $userQuantity = isset($objectif) ? $objectif->getUserQuantity() : 1;
-        // context for normalization
-        $context['metaData'] = [ 'userQuantity' => $userQuantity ];
-
-        // set up serializer, give context and serialize
+        
         $serializer = new Serializer([$recipeNormalizer], $this->encoder);
-        $data = $serializer->serialize($recipe, 'json', $context);
 
-        return new Response($data, 200, ['Content-Type' => 'application/json']);
+        if ($recipe) {
+            // get last user's quantity in order to display 
+            // correct ingredient's quantities
+            $userId = $this->getUser()->getId();
+            $em = $this->getDoctrine()->getRepository(Objectif::class);
+            $objectif = $em->findOneBy(['user' => $userId], ['createdAt' => 'DESC']);
+            $userQuantity = isset($objectif) ? $objectif->getUserQuantity() : 1;
+
+            // context for normalization
+            $context['metaData'] = [ 'code status' => 200, 'userQuantity' => $userQuantity ];
+
+            $data = $serializer->serialize($recipe, 'json', $context);
+            
+            return new Response($data, 200, ['Content-Type' => 'application/json']);
+
+        } else {
+            $data = $serializer->encode(
+                ['code status' => 404, 'message' => 'Recipe not found. Try with another ID.'],
+                'json');
+            return new Response($data, 404, ['Content-Type' => 'application/json']);
+        }
     }
 
     /**

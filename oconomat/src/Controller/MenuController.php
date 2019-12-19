@@ -143,7 +143,10 @@ class MenuController extends AbstractController
     {
         $user = $this->getUser();
         $em = $this->getDoctrine()->getRepository(Menu::class);
-        $menu = $em->findOneBy(['user' => $user->getId()], ['createdAt' => 'DESC']);
+        $menu = $em->findOneBy(
+            ['user' => $user->getId()],
+            ['createdAt' => 'DESC']
+        );
 
         // if menu exists
         if ($menu) {

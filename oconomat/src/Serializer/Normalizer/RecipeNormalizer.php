@@ -15,8 +15,6 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class RecipeNormalizer implements NormalizerInterface
 {
-    private $em;
-
     /**
      * {@inheritdoc}
      */

@@ -23,8 +23,8 @@ class CheckOwnership
             return true;
         } else {
             $this->data = [
-                'status' => 403,
-                'message' => 'L\'utilisateur connecté n\'a pas les droits nécessaires pour accéder à cette ressource.'
+                'code status' => 403,
+                'message' => 'The connected user does not have sufficiant privileges to access this ressource.'
             ];
 
             $this->code = 403;
