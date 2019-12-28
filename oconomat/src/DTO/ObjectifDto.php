@@ -7,7 +7,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class ObjectifDto
 {
     /**
-     * @Assert\Type("float")
+     * @Assert\Type("int")
      */
     private $budget;
 

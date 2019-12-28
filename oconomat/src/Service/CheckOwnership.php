@@ -15,10 +15,10 @@ class CheckOwnership
         $this->security = $security;
     }
 
-    public function check($menu)
+    public function check($entity)
     {
         $currentUser = $this->security->getUser();
-        $user = $menu->getUser();
+        $user = $entity->getUser();
         if ($currentUser === $user) {
             return true;
         } else {
