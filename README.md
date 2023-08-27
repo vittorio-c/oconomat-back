@@ -1,12 +1,20 @@
+# About
+
+This repository contains the backend code used to develop the website _Oconomat_, which was a student project for obtening the diploma "Titre professionnel web et web mobile" (Bac +2).
+
+It uses Symfony 4.3, PHP 7.1, and make avaiable to the frontend a set of Rest API routes.
+
+The frontend code is avaiable at <https://github.com/vittorio-c/oconomat-front>
+
 # Les routes disponibles
 
 ## `/api/menu/{menu-id}` \
 
-Méthode : GET 
+Méthode : GET
 
-Retourne un menu accompagné de plusieurs liens vers les recettes qui le composent, ainsi que d'un lien vers son utilisateur. 
+Retourne un menu accompagné de plusieurs liens vers les recettes qui le composent, ainsi que d'un lien vers son utilisateur.
 
-> le menu n'est accessible qu'à l'utilisateur qui l'a créé  
+> le menu n'est accessible qu'à l'utilisateur qui l'a créé
 > pas besoin d'envoyer cette information en front, la vérification se fait côté back, en récupérant l'user connecté
 
 Ex de réponse :
@@ -47,19 +55,19 @@ Ex de réponse :
       "image": "https://assets.afcdn.com/recipe/20131207/51120_w500h500.jpg"
     },
     {
-       "etc": "etc"        
+       "etc": "etc"
     }
   ]
 }
 ```
 
-## `/api/recipe/{recipe_id}`  
+## `/api/recipe/{recipe_id}`
 
-Méthode : GET 
+Méthode : GET
 
 Retourne une seule recette, accompagnée de ses ingrédients et de ses étapes.
 
-Ex : 
+Ex :
 
 ```json
 {
@@ -115,9 +123,9 @@ Ex :
 }
 ```
 
-## `/api/recipe/{recipe_id}/ingredients`  
+## `/api/recipe/{recipe_id}/ingredients`
 
-Méthode : GET 
+Méthode : GET
 
 Retourne les ingrédients de la recette associées
 
@@ -147,9 +155,9 @@ Ex de réponse :
 ]
 ```
 
-## `/api/recipe/{recipe_id}/steps`  
+## `/api/recipe/{recipe_id}/steps`
 
-Méthode : GET 
+Méthode : GET
 
 Retourne les étapes de préparation de la recette associée
 
@@ -172,9 +180,9 @@ Ex de réponse :
 ]
 ```
 
-## `/api/user/{user_id}`  
+## `/api/user/{user_id}`
 
-Méthode : GET 
+Méthode : GET
 
 Retourne les informations d'un utilisateur déjà enregistré en bdd
 
@@ -239,9 +247,9 @@ Ex de réponse :
 > Attention : Ce résultat va changer !
 
 
-## `/api/menu/user/last`  
+## `/api/menu/user/last`
 
-Méthode : GET 
+Méthode : GET
 
 Retourne le dernier menu appartenant à l'utilisateur connecté
 
@@ -278,7 +286,7 @@ Ex de réponse 200 :
       "image": "https://www.enfant.com/uploads/1000/petit-dej-fraicheur.jpg"
     },
     {
-       "etc": "etc"        
+       "etc": "etc"
     }
   ]
 }
@@ -294,11 +302,11 @@ Ex de réponse 404 (l'utilisateur connecté ne possède pas encore de menu) :
 ```
 
 
-##  `/api/objectif/menu/generate`  
+##  `/api/objectif/menu/generate`
 
-Méthode : POST 
+Méthode : POST
 
-Permet de créer un nouveau menu en fonction d'un budget donné 
+Permet de créer un nouveau menu en fonction d'un budget donné
 
 Ex de requête :
 
@@ -350,7 +358,7 @@ Ex de réponse :
       "image": "https://assets.afcdn.com/recipe/20140103/35197_w420h344c1cx1632cy2464.jpg"
     },
     {
-       "etc": "etc"        
+       "etc": "etc"
     }
   ]
 }
@@ -369,9 +377,9 @@ Ex de réponse :
 ```
 
 
-## `/api/menu/{menu}/shopping-list`  
+## `/api/menu/{menu}/shopping-list`
 
-Méthode : GET 
+Méthode : GET
 
 Retourne une liste de course générée à partir d'un menu
 
@@ -414,7 +422,7 @@ Ex de réponse :
 
 ##  `/api/login_check`
 
-Méthode : POST 
+Méthode : POST
 
 Permet de se login sur le site.
 
@@ -441,9 +449,9 @@ Ex de réponse :
 ```
 
 
-##  `/api/register`  
+##  `/api/register`
 
-Méthode : POST 
+Méthode : POST
 
 Permet de créer un nouvel utilisateur
 
